@@ -32,6 +32,18 @@ class PolygonTest extends WordSpec {
       val p = new Polygon(Array((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
       assert(p.isSelfIntersecting === false)
     }
+    "return false for a triangle" in {
+      val p = new Polygon(Array((0, 0), (0, 1), (1, 0), (0, 0)))
+      assert(p.isSelfIntersecting === false)
+    }
+    "return true for a triangle on a square" in {
+      val p = new Polygon(Array((0, 0), (0, 1), (1, 1), (1, 0), (0, 0), (0, 1), (1, 0), (0, 0)))
+      assert(p.isSelfIntersecting === false)
+    }
+    "return true for a big triangle on a square" in {
+      val p = new Polygon(Array((0, 0), (1, 2), (2, 0), (2, 1), (0, 1), (0, 0)))
+      assert(p.isSelfIntersecting === false)
+    }
   }
 
 }
