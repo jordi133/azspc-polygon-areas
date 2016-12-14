@@ -27,4 +27,11 @@ class PolygonTest extends WordSpec {
     }
   }
 
+  "Polygon isSelfIntersecting" should {
+    "return false for a square" in {
+      val p = new Polygon(Array((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
+      assert(p.isSelfIntersecting === false)
+    }
+  }
+
 }

@@ -3,6 +3,7 @@ package polygonalareas
 /**
   * Created by Jordi on 12-12-2016.
   */
+
 class Polygon(val points: Array[(Int, Int)]) extends AnyVal {
 
   /**
@@ -16,5 +17,14 @@ class Polygon(val points: Array[(Int, Int)]) extends AnyVal {
       dy += points((i + 1) % points.size)._1 * points(i)._2
     }
     dy - dx
+  }
+
+  /**
+    * Determines whether this polygon is self intersecting
+    * @return
+    */
+  def isSelfIntersecting: Boolean = {
+    // TODO implement
+    false
   }
 }
