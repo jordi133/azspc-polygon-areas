@@ -1,36 +1,19 @@
 package polygonalareas
 
 import scala.util.Random
-
-import polygonalareas.Utils._
-
+import Implicits.LineSegmentOps
 /**
   * Created by Jordi on 14-12-2016.
   */
 trait Mutation {
   def mutate(p: Polygon): Polygon
-
-  def test(p: Polygon): Boolean = {
-    def hasParallelEdges: Boolean = {
-      val angles = for (ls <- p.lineSegments.toSeq) yield ls.vector.angleCos
-      angles.distinct.length != angles.length
-    }
-// todo fix has parallel edges
-    hasParallelEdges && !p.isSelfIntersecting
-  }
-}
-
-object PointSwapMutation extends Mutation {
-  override def mutate(p: Polygon): Polygon = {
-    ???
-  }
 }
 
 object CoordinateSwapMutation extends Mutation {
   override def mutate(p: Polygon): Polygon = {
     val newPoints = new Array[Point](p.size + 1)
     p.points.copyToArray(newPoints)
-    val result = new Polygon(newPoints)
+    val result = Polygon(newPoints)
 
     var attempts = 0
     val maxAttempts = 100
@@ -46,7 +29,12 @@ object CoordinateSwapMutation extends Mutation {
       newPoints(i1) = (p1._1, p2._2)
       newPoints(i2) = (p2._1, p1._2)
 
-      if (!test(result)) {
+      val removedPoints = Seq(i1, i2)
+      val addedPoints = Seq(p1, p2)
+      val valid = testMutationOnAngles(result, removedPoints, addedPoints) &&
+        testMutationOnSelfIntersecting(result, removedPoints, addedPoints)
+
+      if (!valid) {
         attempts += 1
         if (attempts == maxAttempts) throw new RuntimeException(s"Cannot find valid mutation on $p")
       } else {
@@ -56,4 +44,99 @@ object CoordinateSwapMutation extends Mutation {
 
     result
   }
+
+  // TODO merge two test functions below
+
+  /**
+    * @param p A valid polygon, meaning no two edges of it are parallel
+    * @param removedPoints indices of the points that will be removed
+    * @param newPoints the new points, in the order in which they will be placed
+    * @return true iff no two egdes of the new polygon are parallel
+    */
+  def testMutationOnAngles(p: Polygon, removedPoints: Seq[Int], newPoints: Seq[Point]): Boolean = {
+    // determine angles to remove from polygon
+    val anglesToRemove = new Array[Vector2D](removedPoints.length * 2)
+    for (i <- removedPoints.indices) {
+      val remP = removedPoints(i)
+      val ls1 = (p.getPointModulo(remP - 1), p.getPointModulo(remP))
+      val ls2 = (p.getPointModulo(remP), p.getPointModulo(remP + 1))
+      anglesToRemove.update(2 * i, ls1.vector)
+      anglesToRemove.update(2 * i + 1, ls2.vector)
+    }
+
+    // remove angles
+    var clearedAngles = p.angles.removeAll(anglesToRemove.toSet)
+
+    // determine new angles to add
+    val anglesToAdd = new Array[Vector2D](removedPoints.length * 2)
+    for (i <- removedPoints.indices) {
+      val newP = newPoints(i)
+      val remP = removedPoints(i)
+      val ls1 = (p.getPointModulo(remP - 1), newP)
+      val ls2 = (newP, p.getPointModulo(remP + 1))
+      anglesToAdd.update(2 * i, ls1.vector)
+      anglesToAdd.update(2 * i + 1, ls2.vector)
+    }
+
+    // add new angles one by one and verify that they are new to the polygon
+    var valid = true
+    var i = 0
+    while (valid && i < anglesToAdd.length) {
+      if (!clearedAngles.contains(anglesToAdd(i))) {
+        clearedAngles = clearedAngles.put(anglesToAdd(i))
+        i += 1
+      } else {
+        valid = false
+      }
+    }
+
+    valid
+  }
+
+  /**
+    * @param p a valid polygon, ie one that is not self intersecting
+    * @param removedPoints
+    * @param newPoints
+    * @return true iff the new polygon is not self intersecting
+    */
+  def testMutationOnSelfIntersecting(p: Polygon, removedPoints: Seq[Int], newPoints: Seq[Point]): Boolean = {
+    // determine edges to remove from polygon
+    val edgesToRemove = new Array[Vector2D](removedPoints.length * 2)
+    for (i <- removedPoints.indices) {
+      val remP = removedPoints(i)
+      val ls1 = (p.getPointModulo(remP - 1), p.getPointModulo(remP))
+      val ls2 = (p.getPointModulo(remP), p.getPointModulo(remP + 1))
+      edgesToRemove.update(2 * i, ls1.vector)
+      edgesToRemove.update(2 * i + 1, ls2.vector)
+    }
+
+    // remove edges
+    var clearedEdges: Seq[LineSegment] = p.edges intersect edgesToRemove
+
+    // determine new edges to add
+    val edgesToAdd = new Array[LineSegment](removedPoints.length * 2)
+    for (i <- removedPoints.indices) {
+      val newP = newPoints(i)
+      val remP = removedPoints(i)
+      val ls1 = (p.getPointModulo(remP - 1), newP)
+      val ls2 = (newP, p.getPointModulo(remP + 1))
+      edgesToAdd.update(2 * i, ls1)
+      edgesToAdd.update(2 * i + 1, ls2)
+    }
+
+    // add new edges one by one and verify that they are not intersecting an existing one
+    var valid = true
+    var i = 0
+    while (valid && i < edgesToAdd.length) {
+      if (!clearedEdges.exists(ls => ls intersects edgesToAdd(i))) {
+        clearedEdges = edgesToAdd(i) +: clearedEdges
+        i += 1
+      } else {
+        valid = false
+      }
+    }
+
+    valid
+  }
+
 }
