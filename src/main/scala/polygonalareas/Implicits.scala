@@ -10,10 +10,6 @@ object Implicits {
       * @return the cross product of this vector with the other vector
       */
     def x(other: Vector2D): Int = v._1 * other._2 - v._2 * other._1
-
-    def length: Double = Math.sqrt(v._1 * v._1 + v._2 * v._2)
-
-    def angleCos: Double = v._2 / length
   }
 
   implicit class PointOps(p: Point) {
@@ -30,8 +26,11 @@ object Implicits {
     def vector: Vector2D = ls._2 - ls._1
 
     def intersects(other: LineSegment): Boolean = {
-      val t = ((other._1 - ls._1) x ls.vector).toDouble / (ls.vector x other.vector)
-      !sharesPointWith(other) && (0 <= t && t <= 1)
+      val t = ((other._1 - ls._1) x other.vector).toDouble / (ls.vector x other.vector)
+      val u = ((other._1 - ls._1) x ls.vector).toDouble / (ls.vector x other.vector).toDouble
+      val sharesPoint = sharesPointWith(other)
+      val tuValid = 0 <= u && u <= 1 && 0 <= t && t <= 1
+      !sharesPoint && tuValid
     }
 
     def sharesPointWith(other: LineSegment): Boolean = {

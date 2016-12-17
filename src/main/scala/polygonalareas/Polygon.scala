@@ -25,7 +25,6 @@ object Polygon {
   }
 }
 
-// TODO: rewrite Polygon so that starting point is no longer repeated at the end (causes trouble when validating angles & intersections etc
 class Polygon private(val points: Array[(Int, Int)], val angles: AnglesSet) {
   lazy val edges: Seq[LineSegment] = (for ((p1, p2) <- points zip (points.tail :+ points.head)) yield (p1, p2)).toSeq
 
@@ -42,7 +41,7 @@ class Polygon private(val points: Array[(Int, Int)], val angles: AnglesSet) {
       dy += points((i + 1) % points.length)._1 * points(i % points.length)._2
       i += 1
     }
-    dy - dx
+    Math.abs(dy - dx)
   }
 
   /**
@@ -60,10 +59,7 @@ class Polygon private(val points: Array[(Int, Int)], val angles: AnglesSet) {
   /**
     * @return whether this polygon is self intersecting
     */
-  lazy val isSelfIntersecting: Boolean = {
-    val lss = lineSegments
-    lss.exists(ls1 => lss.exists(ls2 => ls2 != ls2 && (ls1 intersects ls2)))
-  }
+  lazy val isSelfIntersecting: Boolean = lineSegments.exists(ls1 => lineSegments.exists(ls2 => ls1 != ls2 && (ls1 intersects ls2)))
 
   /**
     * @return all line segments of this polygon

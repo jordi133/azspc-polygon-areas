@@ -53,9 +53,7 @@ class AnglesSet private(angles: Set[Vector2D]) {
 
   def put(v: Vector2D): AnglesSet = new AnglesSet(angles + normalize(v))
 
-  def remove(v: Vector2D): AnglesSet = new AnglesSet(angles - normalize(v))
-
-  def removeAll(vs: Set[Vector2D]) = new AnglesSet(angles.intersect(vs))
+  def removeAll(vs: Set[Vector2D]) = new AnglesSet(angles diff vs.map(normalize))
 
   def getSet = angles
 }
