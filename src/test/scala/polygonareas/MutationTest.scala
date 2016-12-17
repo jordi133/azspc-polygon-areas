@@ -19,5 +19,23 @@ class MutationTest extends WordSpec {
       val pMutated = CoordinateSwapMutation.mutate(p)
       assert(!pMutated.isSelfIntersecting)
     }
+    "generate a valid polygon within 10 tries" in {
+      val p = Polygon(Array((4,0),(5,2),(3,4),(2,3),(1,5),(0,1)))
+      for (i <- 1 to 10) {
+        CoordinateSwapMutation.tryMutation(p) match {
+          case Some(pMutated) => assert(!pMutated.isSelfIntersecting)
+          case None =>
+        }
+      }
+    }
+    "generate a valid polygon within 10 tries with triple swap" in {
+      val p = Polygon(Array((4,0),(5,2),(3,4),(2,3),(1,5),(0,1)))
+      for (i <- 1 to 10) {
+        CoordinateSwapMutation.tryMutation(p, 3) match {
+          case Some(pMutated) => assert(!pMutated.isSelfIntersecting)
+          case None =>
+        }
+      }
+    }
   }
 }

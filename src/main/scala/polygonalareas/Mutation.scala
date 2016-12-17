@@ -2,6 +2,7 @@ package polygonalareas
 
 import scala.util.Random
 import Implicits.LineSegmentOps
+
 /**
   * Created by Jordi on 14-12-2016.
   */
@@ -10,6 +11,56 @@ trait Mutation {
 }
 
 object CoordinateSwapMutation extends Mutation {
+
+  def tryMutation(p: Polygon): Option[Polygon] = {
+    val newPoints = new Array[Point](p.size)
+    p.points.copyToArray(newPoints)
+    val result = Polygon(newPoints)
+
+    val i1 = Random.nextInt(p.size)
+    val p1 = p.points(i1)
+    val i2a = Random.nextInt(p.size - 1)
+    val i2 = if (i2a == i1) p.size - 1 else i2a
+    val p2 = p.points(i2)
+
+    newPoints(i1) = (p1._1, p2._2)
+    newPoints(i2) = (p2._1, p1._2)
+
+    val removedPoints = Seq(i1, i2)
+    val addedPoints = Seq(p1, p2)
+    val valid = testMutationOnAngles(result, removedPoints, addedPoints) &&
+      testMutationOnSelfIntersecting(result, removedPoints, addedPoints)
+
+    if (valid) Some(result) else None
+  }
+
+  def tryMutation(p: Polygon, nrOfPoints: Int): Option[Polygon] = {
+    val newPoints = new Array[Point](p.size)
+    p.points.copyToArray(newPoints)
+    val result = Polygon(newPoints)
+
+    var i = 0
+    var indicesToChange = Seq.empty[Int]
+    while (i < nrOfPoints) {
+      val rnd = Random.nextInt(p.size)
+      if (!indicesToChange.contains(rnd)) {
+        indicesToChange = rnd +: indicesToChange
+      } else {
+        indicesToChange = (p.points.length - 1 - i) +: indicesToChange
+      }
+      i += 1
+    }
+    val pointsToChange = indicesToChange map (i => p.points(i))
+
+    val changedPoints = for ((xi, yi) <- pointsToChange.indices.toList zip Random.shuffle(pointsToChange.indices.toList)) yield
+      (pointsToChange(xi)._1, pointsToChange(yi)._2)
+    
+    val valid = testMutationOnAngles(result, indicesToChange, changedPoints) &&
+      testMutationOnSelfIntersecting(result, indicesToChange, changedPoints)
+
+    if (valid) Some(result) else None
+  }
+
   override def mutate(p: Polygon): Polygon = {
     val newPoints = new Array[Point](p.size)
     p.points.copyToArray(newPoints)
@@ -50,9 +101,9 @@ object CoordinateSwapMutation extends Mutation {
   // TODO merge two test functions below
 
   /**
-    * @param p A valid polygon, meaning no two edges of it are parallel
+    * @param p             A valid polygon, meaning no two edges of it are parallel
     * @param removedPoints indices of the points that will be removed
-    * @param newPoints the new points, in the order in which they will be placed
+    * @param newPoints     the new points, in the order in which they will be placed
     * @return true iff no two egdes of the new polygon are parallel
     */
   def testMutationOnAngles(p: Polygon, removedPoints: Seq[Int], newPoints: Seq[Point]): Boolean = {
