@@ -16,17 +16,18 @@ object Polygon {
   def calculateAngles(points: Array[Point]): AnglesSet = {
     var i = 0
     var result = AnglesSet.empty
-    while (i < points.length - 1) {
-      val (p1, p2) = (points(i), points(i + 1))
+    while (i < points.length) {
+      val (p1, p2) = (points(i), points((i + 1) % points.length))
       result = result.put(p2 - p1)
       i += 1
     }
     result
   }
 }
+
 // TODO: rewrite Polygon so that starting point is no longer repeated at the end (causes trouble when validating angles & intersections etc
 class Polygon private(val points: Array[(Int, Int)], val angles: AnglesSet) {
-  lazy val edges: Seq[LineSegment] = (for ((p1, p2) <- points.init zip points.tail) yield (p1, p2)).toSeq
+  lazy val edges: Seq[LineSegment] = (for ((p1, p2) <- points zip (points.tail :+ points.head)) yield (p1, p2)).toSeq
 
   /**
     * Using double surface so that we can work with integers
@@ -36,9 +37,9 @@ class Polygon private(val points: Array[(Int, Int)], val angles: AnglesSet) {
   def doubleSurface: Int = {
     var (dx, dy) = (0, 0)
     var i = 0
-    while (i < points.length) {
-      dx += points(i)._1 * points((i + 1) % points.length)._2
-      dy += points((i + 1) % points.length)._1 * points(i)._2
+    while (i < points.length + 1) {
+      dx += points(i % points.length)._1 * points((i + 1) % points.length)._2
+      dy += points((i + 1) % points.length)._1 * points(i % points.length)._2
       i += 1
     }
     dy - dx
@@ -46,20 +47,20 @@ class Polygon private(val points: Array[(Int, Int)], val angles: AnglesSet) {
 
   /**
     *
-    * @param i
+    * @param i can be negative
     * @return
     */
-  def getPointModulo(i: Int): Point =     points((i + points.length) % points.length)
+  def getPointModulo(i: Int): Point = points((i + points.length) % points.length)
 
   /**
     * @return the number of different points in this polygon
     */
-  def size = points.length - 1
+  def size = points.length
 
   /**
     * @return whether this polygon is self intersecting
     */
-  def isSelfIntersecting: Boolean = {
+  lazy val isSelfIntersecting: Boolean = {
     val lss = lineSegments
     lss.exists(ls1 => lss.exists(ls2 => ls2 != ls2 && (ls1 intersects ls2)))
   }
@@ -67,7 +68,7 @@ class Polygon private(val points: Array[(Int, Int)], val angles: AnglesSet) {
   /**
     * @return all line segments of this polygon
     */
-  def lineSegments = points.init zip points.tail
+  lazy val lineSegments = points zip (points.tail :+ points.head)
 
   override def toString = points.mkString(", ")
 }

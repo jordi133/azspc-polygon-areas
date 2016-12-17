@@ -11,7 +11,7 @@ object AnglesSet {
 
   /**
     * @return v normalized by dividing both components by the gcd and flipping
-    *         direction to make x possible while keeping the angle the same
+    *         direction to make y (and x if possible) positive while keeping the angle the same
     */
   def normalize(v: Vector2D): Vector2D = {
     if (v._1 == 0) {
@@ -23,7 +23,6 @@ object AnglesSet {
       val (v1abs, v2abs) = (Math.abs(v._1), Math.abs(v._2))
       val a = gcd(v1abs, v2abs)
       if (x * y > 0) {
-        // if ((x < 0 && y < 0) || (x > 0 && y > 0)) {
         (v1abs / a, v2abs / a)
       } else {
         (-v1abs / a, v2abs / a)
@@ -57,4 +56,6 @@ class AnglesSet private(angles: Set[Vector2D]) {
   def remove(v: Vector2D): AnglesSet = new AnglesSet(angles - normalize(v))
 
   def removeAll(vs: Set[Vector2D]) = new AnglesSet(angles.intersect(vs))
+
+  def getSet = angles
 }

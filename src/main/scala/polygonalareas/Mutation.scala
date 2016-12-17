@@ -11,7 +11,7 @@ trait Mutation {
 
 object CoordinateSwapMutation extends Mutation {
   override def mutate(p: Polygon): Polygon = {
-    val newPoints = new Array[Point](p.size + 1)
+    val newPoints = new Array[Point](p.size)
     p.points.copyToArray(newPoints)
     val result = Polygon(newPoints)
 
@@ -42,6 +42,8 @@ object CoordinateSwapMutation extends Mutation {
       }
     }
 
+    println(s"result ${result.points.mkString(", ")} after $attempts attempts")
+
     result
   }
 
@@ -68,22 +70,27 @@ object CoordinateSwapMutation extends Mutation {
     var clearedAngles = p.angles.removeAll(anglesToRemove.toSet)
 
     // determine new angles to add
-    val anglesToAdd = new Array[Vector2D](removedPoints.length * 2)
+    val anglesToAddArray = new Array[Vector2D](removedPoints.length * 2)
     for (i <- removedPoints.indices) {
       val newP = newPoints(i)
       val remP = removedPoints(i)
       val ls1 = (p.getPointModulo(remP - 1), newP)
       val ls2 = (newP, p.getPointModulo(remP + 1))
-      anglesToAdd.update(2 * i, ls1.vector)
-      anglesToAdd.update(2 * i + 1, ls2.vector)
+      anglesToAddArray.update(2 * i, ls1.vector)
+      anglesToAddArray.update(2 * i + 1, ls2.vector)
     }
+
+    // Put angles in anglesSet to prevent the same angle from being added twice (by having adjacent points changes)
+    val anglesToAddSet = AnglesSet.empty
+    for (a <- anglesToAddArray) anglesToAddSet.put(a)
 
     // add new angles one by one and verify that they are new to the polygon
     var valid = true
+    val anglesToAddSeq = anglesToAddSet.getSet.toIndexedSeq
     var i = 0
-    while (valid && i < anglesToAdd.length) {
-      if (!clearedAngles.contains(anglesToAdd(i))) {
-        clearedAngles = clearedAngles.put(anglesToAdd(i))
+    while (valid && i < anglesToAddSeq.size) {
+      if (!clearedAngles.contains(anglesToAddSeq(i))) {
+        clearedAngles = clearedAngles.put(anglesToAddSeq(i))
         i += 1
       } else {
         valid = false

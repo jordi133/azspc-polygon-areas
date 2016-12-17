@@ -29,9 +29,13 @@ object Implicits {
       */
     def vector: Vector2D = ls._2 - ls._1
 
-    def intersects(other: LineSegment) = {
+    def intersects(other: LineSegment): Boolean = {
       val t = ((other._1 - ls._1) x ls.vector).toDouble / (ls.vector x other.vector)
-      0 <= t && t <= 1
+      !sharesPointWith(other) && (0 <= t && t <= 1)
+    }
+
+    def sharesPointWith(other: LineSegment): Boolean = {
+      ls._1 == other._1 || ls._1 == other._2 || ls._2 == other._1 || ls._2 == other._2
     }
   }
 
