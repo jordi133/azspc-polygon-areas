@@ -72,9 +72,12 @@ object Mutation {
       for ((xi, yi) <- pointsToChange.indices.toList zip Random.shuffle(pointsToChange.indices.toList))
         yield (pointsToChange(xi)._1, pointsToChange(yi)._2)
 
+    // TODO if this change leads to the original polygon, then shuffle changedPoints
+
     val newPoints = new Array[Point](p.size)
     p.points.copyToArray(newPoints)
     for ((i, p) <- indicesToChange zip changedPoints) newPoints.update(i, p)
+
     val result = Polygon(newPoints)
 
     val testResult = testMutation(p, indicesToChange, changedPoints, result)
