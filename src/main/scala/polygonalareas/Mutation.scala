@@ -12,12 +12,9 @@ import Implicits.LineSegmentOps
 sealed trait MutationAttempt {
   def p: Polygon
 
-  def isEmpty = this match {
-    case Success(_) => false
-    case _ => true
-  }
-
   def isDefined = !isEmpty
+
+  def isEmpty = toOption.isEmpty
 
   def toOption: Option[Polygon] = this match {
     case Success(p) => Some(p)
@@ -29,16 +26,11 @@ case class Success(p: Polygon) extends MutationAttempt
 
 sealed trait MutationFailure extends MutationAttempt
 
-case class DuplicateAngle(p: Polygon, i1: Int, i2: Int, i3: Int, i4: Int) extends MutationFailure
+case class OriginalGenerated(p: Polygon) extends MutationAttempt
+
+case class DuplicateAngle(p: Polygon) extends MutationFailure
 
 case class SelfIntersection(p: Polygon, i1: Int, i2: Int, i3: Int, i4: Int) extends MutationFailure
-
-// TODO remove class
-case class BasicMutationFailure(p: Polygon) extends MutationFailure
-
-//case class MultipleDuplicateAngle(p: Polygon, indices: List[(Int, Int, Int, Int)]) extends MutationAttempt(p)
-
-//case class MultipleSelfIntersections(p: Polygon, indices: List[(Int, Int, Int, Int)]) extends MutationAttempt(p)
 
 object Mutation {
 
@@ -64,26 +56,25 @@ object Mutation {
   }
 
   def tryMutation(p: Polygon, nrOfPoints: Int): MutationAttempt = {
-    //  def tryMutation(p: Polygon, nrOfPoints: Int): Option[Polygon] = {
     val indicesToChange = Random.shuffle(p.points.indices.toList).take(nrOfPoints).toIndexedSeq
     val pointsToChange = indicesToChange map (i => p.points(i))
+    val (xCoords, yCoords) = pointsToChange.unzip
 
-    val changedPoints =
-      for ((xi, yi) <- pointsToChange.indices.toList zip Random.shuffle(pointsToChange.indices.toList))
-        yield (pointsToChange(xi)._1, pointsToChange(yi)._2)
+    val changedPoints = for ((x, y) <- Random.shuffle(xCoords) zip Random.shuffle(yCoords)) yield (x, y)
 
-    // TODO if this change leads to the original polygon, then shuffle changedPoints
+    if (pointsToChange.toList == changedPoints) {
+      OriginalGenerated(p)
+    } else {
+      val newPoints = new Array[Point](p.size)
+      p.points.copyToArray(newPoints)
+      for ((i, p) <- indicesToChange zip changedPoints) newPoints.update(i, p)
 
-    val newPoints = new Array[Point](p.size)
-    p.points.copyToArray(newPoints)
-    for ((i, p) <- indicesToChange zip changedPoints) newPoints.update(i, p)
+      val result = Polygon(newPoints)
+      val testResult = testMutation(p, indicesToChange, changedPoints, result)
 
-    val result = Polygon(newPoints)
-
-    val testResult = testMutation(p, indicesToChange, changedPoints, result)
-
-    if (testResult.isEmpty) println(s"Resulting polynom: $result from changing $pointsToChange to $changedPoints")
-    if (testResult.isEmpty) Success(result) else testResult.get
+      if (testResult.isEmpty) println(s"Resulting polynom: $result from changing $pointsToChange to $changedPoints")
+      if (testResult.isEmpty) Success(result) else testResult.get
+    }
   }
 
   def testMutation(p: Polygon, removedPoints: IndexedSeq[Int], addedPoints: Seq[Point], newPolygon: Polygon): Option[MutationFailure] = {
@@ -135,7 +126,8 @@ object Mutation {
         clearedAngles = clearedAngles.put(anglesToAddSeq(i))
         i += 1
       } else {
-        result = Some(BasicMutationFailure(newPolygon))
+        // TODO: think of a way to fix polygons like this, then add more information on returned failure
+        result = Some(DuplicateAngle(newPolygon))
       }
     }
     i = 0
@@ -145,12 +137,10 @@ object Mutation {
           clearedEdges = edgesToAdd(i) +: clearedEdges
           i += 1
         case Some(edge) =>
-          val edge = clearedEdges.find(ls => ls intersects edgesToAdd(i)).get
           val i1 = newPolygon.points.indexOf(edge._1)
           val i2 = newPolygon.points.indexOf(edge._2)
           val i3 = newPolygon.points.indexOf(edgesToAdd(i)._1)
           val i4 = newPolygon.points.indexOf(edgesToAdd(i)._2)
-
           result = Some(SelfIntersection(newPolygon, i1, i2, i3, i4))
       }
     }
