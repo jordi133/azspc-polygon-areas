@@ -37,11 +37,21 @@ class MutationTest extends WordSpec {
     "generate a valid polygon within 100 tries with triple swap" in {
       val p = Polygon(Array((4,0),(5,2),(3,4),(2,3),(1,5),(0,1)))
       for (i <- 1 to 100) {
-        Mutation.tryMutation(p, 3) match {
+        Mutation.tryMutation(p, 3).toOption match {
           case Some(pMutated) =>
             println(s"triple swap result after $i attempts: ${pMutated.points.mkString(", ")}")
             assert(!pMutated.isSelfIntersecting)
             assert(pMutated.angles.getSet.size === pMutated.size)
+          case None =>
+        }
+      }
+    }
+    "triple swap should not result in the original polynom" in {
+      val p = Polygon(Array((4,0),(5,2),(3,4),(2,3),(1,5),(0,1)))
+      for (i <- 1 to 100) {
+        Mutation.tryMutation(p, 3).toOption match {
+          case Some(pMutated) =>
+            assert(pMutated.points.toList !== p.points.toList)
           case None =>
         }
       }
