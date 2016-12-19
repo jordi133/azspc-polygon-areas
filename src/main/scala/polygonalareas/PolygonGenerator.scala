@@ -1,6 +1,7 @@
 package polygonalareas
 
 import scala.util.Random
+import Implicits.PointOps
 
 /**
   * Created by Jordi on 18-12-2016.
@@ -31,10 +32,29 @@ class PolygonGenerator(n: Int, seed: Int = Random.nextInt()) {
     */
   def generateLinearPolygon: Polygon = {
     val points = generateRandomPoints
-    val leftMost = points.minBy{_._1}
-    val rightMost = points.maxBy{_._1}
+    val l = points.minBy(_.x)
+    val r = points.maxBy(_.x)
 
-    ???
+    var leftPoints = Set.empty[Point]
+    var rightPoints = Set.empty[Point]
+    for (p <- points - l - r) {
+      val sign = Math.signum((r.x - l.x) * (p.y - l.y) - (r.y - l.y) * (p.x - l.x))
+      if (sign <= 0) leftPoints += p
+      else rightPoints += p
+    }
+
+    val leftPointsSorted = leftPoints.toIndexedSeq.sortBy(_.x)
+    val rightPointsSorted = rightPoints.toIndexedSeq.sortBy(_.x)
+
+    val pointsArray = new Array[Point](n)
+    pointsArray.update(0, l)
+    pointsArray.update(leftPointsSorted.size + 1, r)
+    for (i <- leftPointsSorted.indices)
+      pointsArray.update(1 + i, leftPointsSorted(i))
+    for (i <- rightPointsSorted.indices)
+      pointsArray.update(n - i - 1, rightPointsSorted(i))
+
+    Polygon(pointsArray)
   }
 
   def generateFromConvexHull: Polygon = {

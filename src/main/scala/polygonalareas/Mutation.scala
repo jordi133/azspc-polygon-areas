@@ -70,35 +70,31 @@ object Mutation {
       for ((i, p) <- indicesToChange zip changedPoints) newPoints.update(i, p)
 
       val result = Polygon(newPoints)
-      val testResult = testMutation(p, indicesToChange, changedPoints, result)
+      val testResult =
+        if (result.angles.getSet.size != result.size) Some(DuplicateAngle(p))
+        else testMutationOnSelfIntersection(p, indicesToChange, changedPoints, result)
 
-      if (testResult.isEmpty) println(s"Resulting polynom: $result from changing $pointsToChange to $changedPoints")
+      if (testResult.isEmpty) {
+        println(s"Resulting polynom: $result from changing $pointsToChange to $changedPoints")
+      }
       if (testResult.isEmpty) Success(result) else testResult.get
     }
   }
 
-  def testMutation(p: Polygon, removedPoints: IndexedSeq[Int], addedPoints: Seq[Point], newPolygon: Polygon): Option[MutationFailure] = {
-    // determine angles to remove from polygon
-    val anglesToRemove = new Array[Vector2D](removedPoints.length * 2)
+  def testMutationOnSelfIntersection(p: Polygon, removedPoints: IndexedSeq[Int], addedPoints: Seq[Point], newPolygon: Polygon): Option[MutationFailure] = {
     // determine edges to remove from polygon
-    val edgesToRemove = new Array[Vector2D](removedPoints.length * 2)
+    val edgesToRemove = new Array[LineSegment](removedPoints.length * 2)
     for (i <- removedPoints.indices) {
       val remP = removedPoints(i)
       val ls1 = (p.getPointModulo(remP - 1), p.getPointModulo(remP))
       val ls2 = (p.getPointModulo(remP), p.getPointModulo(remP + 1))
-      anglesToRemove.update(2 * i, ls1.vector)
-      anglesToRemove.update(2 * i + 1, ls2.vector)
-      edgesToRemove.update(2 * i, ls1.vector)
-      edgesToRemove.update(2 * i + 1, ls2.vector)
+      edgesToRemove.update(2 * i, ls1)
+      edgesToRemove.update(2 * i + 1, ls2)
     }
 
-    // remove angles
-    var clearedAngles = p.angles.removeAll(anglesToRemove.toSet)
     // remove edges
     var clearedEdges: Seq[LineSegment] = p.edges diff edgesToRemove
 
-    // determine new angles to add
-    val anglesToAddArray = new Array[Vector2D](removedPoints.length * 2)
     // determine new edges to add
     val edgesToAdd = new Array[LineSegment](removedPoints.length * 2)
 
@@ -107,31 +103,14 @@ object Mutation {
       val remP = removedPoints(i)
       val ls1 = (newPolygon.getPointModulo(remP - 1), newP)
       val ls2 = (newP, newPolygon.getPointModulo(remP + 1))
-      anglesToAddArray.update(2 * i, ls1.vector)
-      anglesToAddArray.update(2 * i + 1, ls2.vector)
       edgesToAdd.update(2 * i, ls1)
       edgesToAdd.update(2 * i + 1, ls2)
     }
 
-    // Put angles in anglesSet to prevent the same angle from being added twice (by having adjacent points changed)
-    var anglesToAddSet = AnglesSet.empty
-    for (a <- anglesToAddArray) anglesToAddSet = anglesToAddSet.put(a)
-
     // add new angles one by one and verify that they are new to the polygon
-    var result = Option.empty[MutationFailure]
-    val anglesToAddSeq = anglesToAddSet.getSet.toIndexedSeq
+    var testResult = Option.empty[MutationFailure]
     var i = 0
-    while (result.isEmpty && i < anglesToAddSeq.size) {
-      if (!clearedAngles.contains(anglesToAddSeq(i))) {
-        clearedAngles = clearedAngles.put(anglesToAddSeq(i))
-        i += 1
-      } else {
-        // TODO: think of a way to fix polygons like this, then add more information on returned failure
-        result = Some(DuplicateAngle(newPolygon))
-      }
-    }
-    i = 0
-    while (result.isEmpty && i < edgesToAdd.length) {
+    while (testResult.isEmpty && i < edgesToAdd.length) {
       clearedEdges.find(ls => ls intersects edgesToAdd(i)) match {
         case None =>
           clearedEdges = edgesToAdd(i) +: clearedEdges
@@ -141,11 +120,11 @@ object Mutation {
           val i2 = newPolygon.points.indexOf(edge._2)
           val i3 = newPolygon.points.indexOf(edgesToAdd(i)._1)
           val i4 = newPolygon.points.indexOf(edgesToAdd(i)._2)
-          result = Some(SelfIntersection(newPolygon, i1, i2, i3, i4))
+          testResult = Some(SelfIntersection(newPolygon, i1, i2, i3, i4))
       }
     }
 
-    result
+    testResult
   }
 
 }

@@ -17,6 +17,10 @@ object Implicits {
       * @return the difference between this point and the other point
       */
     def -(other: Point): Vector2D = (other._1 - p._1, other._2 - p._2)
+
+    def x = p._1
+
+    def y = p._2
   }
 
   implicit class LineSegmentOps(ls: LineSegment) {

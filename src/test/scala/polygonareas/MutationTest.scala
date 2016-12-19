@@ -22,7 +22,7 @@ class MutationTest extends WordSpec {
     "generate a valid polygon within 25 times tryMutation" in {
       val p = Polygon(Array((4, 0), (5, 2), (3, 4), (2, 3), (1, 5), (0, 1)))
       var pMutated = Option.empty[Polygon]
-      (1 to 25) foreach { i =>
+      (1 to 50) foreach { i =>
         Mutation.tryMutation(p) foreach { pm =>
           println(s"Result after $i attempts of tryMutation: ${pm.points.mkString(", ")}")
           pMutated = Some(pm)
