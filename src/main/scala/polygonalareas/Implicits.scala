@@ -33,7 +33,7 @@ object Implicits {
       !sharesPoint && tuValid
     }
 
-    def sharesPointWith(other: LineSegment): Boolean = {
+    private def sharesPointWith(other: LineSegment): Boolean = {
       ls._1 == other._1 || ls._1 == other._2 || ls._2 == other._1 || ls._2 == other._2
     }
   }

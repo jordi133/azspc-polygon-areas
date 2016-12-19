@@ -26,7 +26,7 @@ object Polygon {
 }
 
 class Polygon private(val points: Array[(Int, Int)], val angles: AnglesSet) {
-  lazy val edges: Seq[LineSegment] = (for ((p1, p2) <- points zip (points.tail :+ points.head)) yield (p1, p2)).toSeq
+  lazy val edges: Seq[LineSegment] = (points zip (points.tail :+ points.head)).toSeq
 
   /**
     * Using double surface so that we can work with integers
@@ -59,12 +59,7 @@ class Polygon private(val points: Array[(Int, Int)], val angles: AnglesSet) {
   /**
     * @return whether this polygon is self intersecting
     */
-  lazy val isSelfIntersecting: Boolean = lineSegments.exists(ls1 => lineSegments.exists(ls2 => ls1 != ls2 && (ls1 intersects ls2)))
-
-  /**
-    * @return all line segments of this polygon
-    */
-  lazy val lineSegments = points zip (points.tail :+ points.head)
+  lazy val isSelfIntersecting: Boolean = edges.exists(ls1 => edges.exists(ls2 => ls1 != ls2 && (ls1 intersects ls2)))
 
   override def toString = points.mkString(", ")
 }
