@@ -16,10 +16,34 @@ class PolygonGenerator(n: Int, seed: Int = Random.nextInt()) {
     *
     * @return
     */
-  def generateCircularPolygon: Polygon = {
+  def generateStarPolygon: Polygon = {
+    val points = generateRandomPoints
+    val middle = points.find(_.x == n/2).get
 
+    // split in left and right sides of x = n/2
+    var leftPoints = Set.empty[Point]
+    var rightPoints = Set.empty[Point]
+    for (p <- points) {
+      if (p.x < middle.x) leftPoints += p
+      else rightPoints += p
+    }
+    val rightSorted = rightPoints.toIndexedSeq.sortBy(p => (p.y - middle.y).toDouble / (p.x - middle.x))
+    val leftSorted = rightPoints.toIndexedSeq.sortBy(p => (p.y - middle.y).toDouble / (p.x - middle.x))
 
-    ???
+    val sortedPoints =
+      if (middle.y >= n/2) {
+        rightSorted ++ (middle +: leftSorted)
+      } else {
+        (middle +: rightSorted) ++ leftSorted
+      }
+
+    val pointsArray = new Array[Point](n)
+
+    for (i <- pointsArray.indices) {
+      pointsArray.update(i, sortedPoints(i))
+    }
+
+    Polygon(pointsArray)
   }
 
   /**

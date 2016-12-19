@@ -31,4 +31,10 @@ class PolygonGeneratorTest extends WordSpec {
       assert(p.isSelfIntersecting === false)
     }
   }
+  "generateStarPolygon" should {
+    "generate a non self intersecting polygon" in {
+      val p = gen.generateStarPolygon
+      assert(p.isSelfIntersecting === false)
+    }
+  }
 }
