@@ -1,5 +1,7 @@
 package polygonalareas
 
+import polygonalareas.generators.TwoStepPolygonGenerator
+
 import scala.util.Random
 
 /**
@@ -23,7 +25,7 @@ class Optimizer(n: Int, seed: Int = Random.nextInt()) {
   }
 
   def generateInitialPopulation(tries: Int = 100): Seq[Polygon] = {
-    val gen = new PolygonGenerator(n, seed)
+    val gen = new TwoStepPolygonGenerator(n, seed)
 
     val polygons = for (i <- 1 to tries) yield gen.generateStarPolygon
     val result = polygons.filter(p => p.angles.getSet.size == p.size)

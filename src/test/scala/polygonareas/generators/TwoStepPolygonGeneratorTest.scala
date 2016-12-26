@@ -1,14 +1,16 @@
-package polygonareas
+package polygonareas.generators
 
 import org.scalatest.WordSpec
-import polygonalareas.PolygonGenerator
+import polygonalareas.Point
+import polygonalareas.generators.TwoStepPolygonGenerator
 
 /**
   * Created by Jordi on 19-12-2016.
   */
-class PolygonGeneratorTest extends WordSpec {
+class TwoStepPolygonGeneratorTest extends WordSpec {
+
   val n = 10
-  val gen = new PolygonGenerator(n)
+  val gen = new TwoStepPolygonGenerator(n)
   "generateRandomPoints" should {
     "generate a set with coordinates between 1 and n (including)" in {
       val (xs, ys) = gen.generateRandomPoints.unzip
@@ -19,7 +21,7 @@ class PolygonGeneratorTest extends WordSpec {
     }
     "generate all different x and y coordinates" in {
       val n = 10
-      val gen = new PolygonGenerator(n)
+      val gen = new TwoStepPolygonGenerator(n)
       val (xs, ys) = gen.generateRandomPoints.unzip
       assert(xs.size === n)
       assert(ys.size === n)

@@ -1,12 +1,15 @@
 package polygonareas
 
 import org.scalatest.WordSpec
-import polygonalareas.Polygon
+import polygonalareas.{Point, Polygon}
 
 /**
   * Created by Jordi on 12-12-2016.
   */
 class PolygonTest extends WordSpec {
+
+  implicit def tupleToPoint(tuple :(Int, Int)): Point = Point(tuple._1, tuple._2)
+
 
   "Polygon surface" should {
     "calculate surface for 1x1 box" in {

@@ -84,7 +84,7 @@ object SolutionManager {
     } else {
       val coordinates = s.split("\\),\\(") map { str: String =>
         val (x, y) = str.splitAt(str.indexOf(','))
-        (x.filter(c => c.isDigit).toInt, y.filter(c => c.isDigit).toInt)
+        Point(x.filter(c => c.isDigit).toInt, y.filter(c => c.isDigit).toInt)
       }
       val result = new Array[Point](coordinates.length)
       for (i <- coordinates.indices) result.update(i, coordinates(i))

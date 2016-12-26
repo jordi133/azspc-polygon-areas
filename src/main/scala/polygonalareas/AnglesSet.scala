@@ -14,18 +14,18 @@ object AnglesSet {
     *         direction to make y (and x if possible) positive while keeping the angle the same
     */
   def normalize(v: Vector2D): Vector2D = {
-    if (v._1 == 0) {
-      (0, 1)
-    } else if (v._2 == 0) {
-      (1, 0)
+    if (v.x == 0) {
+      Vector2D(0, 1)
+    } else if (v.y == 0) {
+      Vector2D(1, 0)
     } else {
-      val (x, y) = v
-      val (v1abs, v2abs) = (Math.abs(v._1), Math.abs(v._2))
+      val Vector2D(x, y) = v
+      val (v1abs, v2abs) = (Math.abs(v.x), Math.abs(v.y))
       val a = gcd(v1abs, v2abs)
       if (x * y > 0) {
-        (v1abs / a, v2abs / a)
+        Vector2D(v1abs / a, v2abs / a)
       } else {
-        (-v1abs / a, v2abs / a)
+        Vector2D(-v1abs / a, v2abs / a)
       }
     }
   }

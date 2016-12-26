@@ -4,18 +4,37 @@ import scala.annotation.tailrec
   * Created by Jordi on 14-12-2016.
   */
 package object polygonalareas {
+
   /**
     * A point consists of two integer coordinates, representing a point in a 2D grid
     */
-  type Point = (Int, Int)
+  case class Point(x: Int, y: Int) {
+    /**
+      * @return the difference between this point and the other point
+      */
+    def -(other: Point): Vector2D = Vector2D(other.x - x, other.y - y)
+  }
   /**
     * A vector consists of two integer components, representing a direction in a 2D grid
     */
-  type Vector2D = (Int, Int)
+  case class Vector2D(x: Int, y: Int) {
+    /**
+      * @return the cross product of this vector with the other vector
+      */
+    def x(other: Vector2D): Int = x * other.y - y * other.x
+  }
+
   /**
     * A line segment is defines by a start and end point
     */
-  type LineSegment = (Point, Point)
+  case class LineSegment(p1: Point, p2: Point) {
+    /**
+      * @return the direction of this line as a 2D vector
+      */
+    lazy val vector: Vector2D = p2 - p1
+  }
+
+  implicit def asPair: Point => (Int, Int) = p => (p.x, p.y)
 
   def poisson(m: Long, r: Int): Double = {
     @tailrec

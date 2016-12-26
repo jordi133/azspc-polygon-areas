@@ -1,6 +1,6 @@
 package polygonalareas
 
-import Implicits.{PointOps, LineSegmentOps}
+import Implicits.{ LineSegmentOps}
 
 /**
   * Created by Jordi on 12-12-2016.
@@ -9,7 +9,7 @@ import Implicits.{PointOps, LineSegmentOps}
   */
 
 object Polygon {
-  def apply(points: Array[(Int, Int)]): Polygon = {
+  def apply(points: Array[Point]): Polygon = {
     new Polygon(points, calculateAngles(points))
   }
 
@@ -25,8 +25,8 @@ object Polygon {
   }
 }
 
-class Polygon private(val points: Array[(Int, Int)], val angles: AnglesSet) {
-  lazy val edges: Seq[LineSegment] = (points zip (points.tail :+ points.head)).toSeq
+class Polygon private(val points: Array[Point], val angles: AnglesSet) {
+  lazy val edges: Seq[LineSegment] = (points zip (points.tail :+ points.head)).map{case (p1, p2) => LineSegment(p1,p2)}.toSeq
 
   /**
     * Using double surface so that we can work with integers
@@ -37,8 +37,8 @@ class Polygon private(val points: Array[(Int, Int)], val angles: AnglesSet) {
     var (dx, dy) = (0, 0)
     var i = 0
     while (i < points.length + 1) {
-      dx += points(i % points.length)._1 * points((i + 1) % points.length)._2
-      dy += points((i + 1) % points.length)._1 * points(i % points.length)._2
+      dx += points(i % points.length).x * points((i + 1) % points.length).y
+      dy += points((i + 1) % points.length).x * points(i % points.length).y
       i += 1
     }
     Math.abs(dy - dx)

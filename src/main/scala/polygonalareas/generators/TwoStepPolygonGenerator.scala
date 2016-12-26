@@ -1,12 +1,13 @@
-package polygonalareas
+package polygonalareas.generators
+
+import polygonalareas._
 
 import scala.util.Random
-import Implicits.PointOps
 
 /**
   * Created by Jordi on 18-12-2016.
   */
-class PolygonGenerator(n: Int, seed: Int = Random.nextInt()) {
+class TwoStepPolygonGenerator(n: Int, seed: Int = Random.nextInt()) {
   val random = new Random(seed)
 
   /**
@@ -104,6 +105,6 @@ class PolygonGenerator(n: Int, seed: Int = Random.nextInt()) {
       swap(xs, x, n - 1 - i)
       swap(ys, y, n - 1 - i)
     }
-    (for (i <- 0 until n) yield (xs(i), ys(i))).toSet
+    (for (i <- 0 until n) yield Point(xs(i), ys(i))).toSet
   }
 }

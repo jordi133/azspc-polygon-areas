@@ -1,12 +1,14 @@
 package polygonareas
 
 import org.scalatest.WordSpec
-import polygonalareas.AnglesSet
+import polygonalareas.{AnglesSet, Vector2D}
 
 /**
   * Created by Jordi on 16-12-2016.
   */
 class AnglesSetTest extends WordSpec {
+  implicit def tupleToVector2D(tuple :(Int, Int)): Vector2D = Vector2D(tuple._1, tuple._2)
+
   "contains" should {
     "return false on empty angleset" in {
       val as = AnglesSet.empty

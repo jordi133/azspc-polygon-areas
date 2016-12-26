@@ -2,6 +2,7 @@ package polygonalareas
 
 import scala.util.Random
 import Implicits.LineSegmentOps
+import Implicits.PointToTuple
 
 /**
   * Created by Jordi on 14-12-2016.
@@ -60,7 +61,7 @@ object Mutation {
     val pointsToChange = indicesToChange map (i => p.points(i))
     val (xCoords, yCoords) = pointsToChange.unzip
 
-    val changedPoints = for ((x, y) <- Random.shuffle(xCoords) zip Random.shuffle(yCoords)) yield (x, y)
+    val changedPoints = for ((x, y) <- Random.shuffle(xCoords) zip Random.shuffle(yCoords)) yield Point(x, y)
 
     if (pointsToChange.toList == changedPoints) {
       OriginalGenerated(p)
@@ -86,8 +87,8 @@ object Mutation {
     val edgesToRemove = new Array[LineSegment](removedPoints.length * 2)
     for (i <- removedPoints.indices) {
       val remP = removedPoints(i)
-      val ls1 = (p.getPointModulo(remP - 1), p.getPointModulo(remP))
-      val ls2 = (p.getPointModulo(remP), p.getPointModulo(remP + 1))
+      val ls1 = LineSegment(p.getPointModulo(remP - 1), p.getPointModulo(remP))
+      val ls2 = LineSegment(p.getPointModulo(remP), p.getPointModulo(remP + 1))
       edgesToRemove.update(2 * i, ls1)
       edgesToRemove.update(2 * i + 1, ls2)
     }
@@ -101,8 +102,8 @@ object Mutation {
     for (i <- removedPoints.indices) {
       val newP = addedPoints(i)
       val remP = removedPoints(i)
-      val ls1 = (newPolygon.getPointModulo(remP - 1), newP)
-      val ls2 = (newP, newPolygon.getPointModulo(remP + 1))
+      val ls1 = LineSegment(newPolygon.getPointModulo(remP - 1), newP)
+      val ls2 = LineSegment(newP, newPolygon.getPointModulo(remP + 1))
       edgesToAdd.update(2 * i, ls1)
       edgesToAdd.update(2 * i + 1, ls2)
     }
@@ -116,10 +117,10 @@ object Mutation {
           clearedEdges = edgesToAdd(i) +: clearedEdges
           i += 1
         case Some(edge) =>
-          val i1 = newPolygon.points.indexOf(edge._1)
-          val i2 = newPolygon.points.indexOf(edge._2)
-          val i3 = newPolygon.points.indexOf(edgesToAdd(i)._1)
-          val i4 = newPolygon.points.indexOf(edgesToAdd(i)._2)
+          val i1 = newPolygon.points.indexOf(edge.p1)
+          val i2 = newPolygon.points.indexOf(edge.p2)
+          val i3 = newPolygon.points.indexOf(edgesToAdd(i).p1)
+          val i4 = newPolygon.points.indexOf(edgesToAdd(i).p2)
           testResult = Some(SelfIntersection(newPolygon, i1, i2, i3, i4))
       }
     }

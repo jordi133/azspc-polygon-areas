@@ -1,12 +1,14 @@
 package polygonareas
 
 import org.scalatest.WordSpec
-import polygonalareas.{Mutation, Polygon}
+import polygonalareas.{Mutation, Point, Polygon}
 
 /**
   * Created by Jordi on 14-12-2016.
   */
 class MutationTest extends WordSpec {
+
+  implicit def tupleToPoint(tuple :(Int, Int)): Point = Point(tuple._1, tuple._2)
 
   "CoordinateSwapMutation" should {
     "keep the number of points in the polygon the same" in {
