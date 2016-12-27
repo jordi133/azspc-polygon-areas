@@ -1,6 +1,8 @@
 package polygonalareas.generators
 
-import polygonalareas.{Vector2D, Point}
+import polygonalareas.{Point, Vector2D}
+
+import scala.annotation.tailrec
 
 /**
   * Created by Jordi on 25-12-2016.
@@ -24,38 +26,31 @@ object ConvexHullGenerator {
     def rightTurn(p1: Point, p2: Point, p3: Point): Boolean = {
       val ls1: Vector2D = p2 - p1
       val ls2: Vector2D = p3 - p2
-      (ls1 x ls2) >= 0
+      (ls1 x ls2) <= 0
     }
     def belowLine(p: Point): Boolean = rightTurn(leftMost, rightMost, p)
-
-    var convexHull = Seq.empty[Point]
-    var rest: Set[Point] = Set.empty[Point]
-    var upper = Seq(rightMost)
-
-    var i = 0
-    while (i < points.length) {
-      if (belowLine(points(i))) {
-        // verify angle p, convexHull.head, convexHull.tail.head
-        convexHull = points(i) +: convexHull
-        while (convexHull.size > 2 && rightTurn(convexHull.head, convexHull.tail.head, convexHull.tail.head)) {
-          rest = rest + convexHull.tail.head
-          convexHull = convexHull.head +: convexHull.tail.tail
-        }
+    @tailrec
+    def clearConvexHull(convexHull: Seq[Point], rest:Set[Point]): (Seq[Point], Set[Point]) = {
+      if (convexHull.size > 2 && rightTurn(convexHull.tail.tail.head, convexHull.tail.head, convexHull.head)) {
+        clearConvexHull(convexHull.head +: convexHull.tail.tail, rest + convexHull.tail.head)
       } else {
-        upper = points(i) +: upper
+        (convexHull, rest)
       }
-      i += 1
+    }
+    @tailrec
+    def buildConvexHull(pss: Seq[Point], convexHull: Seq[Point] = Seq.empty[Point], rest: Set[Point] = Set.empty[Point]):  (Seq[Point], Set[Point]) = {
+      pss match {
+        case p +: ps =>
+          val (newConvexHull, newRest) = clearConvexHull(p +: convexHull, rest)
+          buildConvexHull(ps, newConvexHull, newRest)
+        case Nil =>
+          (convexHull, rest)
+      }
     }
 
-    i = 0
-    while (i < upper.length) {
-      convexHull = upper(i) +: convexHull
-      while (convexHull.size > 2 && rightTurn(convexHull.head, convexHull.tail.head, convexHull.tail.head)) {
-        rest = rest + convexHull.tail.head
-        convexHull = convexHull.head +: convexHull.tail
-      }
-      i += 1
-    }
+    val (lower, upper) = points.partition(p => belowLine(p))
+    val (chPhase1, restPhase1) = buildConvexHull(lower)
+    val (convexHull, rest) = buildConvexHull(upper.reverse, chPhase1, restPhase1)
 
     (convexHull, rest)
   }

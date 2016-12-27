@@ -16,7 +16,7 @@ class ConvexHullGeneratorTest extends WordSpec {
   "getConvexHullFromSortedPoints" should {
     "generate correct convex hull for a square" in {
       val points: IndexedSeq[Point] = Vector((0, 1), (1, 4), (2, 3), (3, 0), (4, 2), (5, 2))
-      assert(gen.getConvexHullFromSortedPoints(points) === Seq((0, 1), (3, 0), (5, 2), (1, 4)))
+      assert(gen.getConvexHullFromSortedPoints(points) === (List(Point(0, 1), Point(3, 0), Point(5, 2), Point(1, 4)).reverse, Set(Point(2, 3), Point(4, 2))))
     }
     "return all points after creating the convex hull" in {
       val points: IndexedSeq[Point] = Vector((0, 1), (1, 4), (2, 3), (3, 0), (4, 2), (5, 2))
@@ -24,4 +24,5 @@ class ConvexHullGeneratorTest extends WordSpec {
       assert(convexHull.size + rest.size === points.size)
     }
   }
+
 }
