@@ -1,7 +1,7 @@
 package polygonareas
 
 import org.scalatest.WordSpec
-import polygonalareas.SolutionManager
+import polygonalareas.{Point, SolutionManager}
 
 /**
   * Created by Jordi on 18-12-2016.
@@ -18,8 +18,14 @@ class SolutionManagerTest extends WordSpec {
       assert(SolutionManager.stringToCoordinates("(0,0),(1,1)").length === 2)
     }
     "return an an array with the correct elements for (0,0),(1,1)" in {
-      assert(SolutionManager.stringToCoordinates("(0,0),(1,1)").toList === List((0,0),(1,1)))
+      assert(SolutionManager.stringToCoordinates("(0,0),(1,1)").toList === List(Point(0,0),Point(1,1)))
     }
   }
+
+//  "read polygons" should {
+//    "result in read polygons" in {
+//      for ((k,v) <- SolutionManager.readPolygons) println(s"$k, $v")
+//    }
+//  }
 
 }

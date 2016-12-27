@@ -36,6 +36,12 @@ package object polygonalareas {
 
   implicit def asPair: Point => (Int, Int) = p => (p.x, p.y)
 
+  def rightTurn(p1: Point, p2: Point, p3: Point): Boolean = {
+    val ls1: Vector2D = p2 - p1
+    val ls2: Vector2D = p3 - p2
+    (ls1 x ls2) <= 0
+  }
+
   def poisson(m: Long, r: Int): Double = {
     @tailrec
     def poissonR(m: Long, r: Int, p: Double, i: Int): Double =

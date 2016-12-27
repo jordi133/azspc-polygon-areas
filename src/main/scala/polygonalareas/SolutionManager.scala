@@ -15,7 +15,8 @@ object SolutionManager {
 
   var polygons: Map[Int, (Option[Polygon], Option[Polygon])] = {
     var result = Map.empty[Int, (Option[Polygon], Option[Polygon])]
-    for (line <- Source.fromFile(filename).getLines()) yield {
+    val lines = Source.fromFile(filename).getLines()
+    for (line <- lines) {
       val polygon = Polygon(stringToCoordinates(line.filter(c => c != ';')))
       result.get(polygon.size) match {
         case None =>
@@ -31,7 +32,6 @@ object SolutionManager {
         case Some((Some(min), Some(max))) =>
           if (polygon.doubleSurface > max.doubleSurface) result = result.updated(polygon.size, (Some(min), Some(polygon)))
           if (polygon.doubleSurface < min.doubleSurface) result = result.updated(polygon.size, (Some(polygon), Some(max)))
-          println(s"found three polygons for size ${polygon.size}")
       }
     }
     result
@@ -41,37 +41,57 @@ object SolutionManager {
     polygons.get(polygon.size) match {
       case None =>
         polygons = polygons.updated(polygon.size, (Some(polygon), Some(polygon)))
+        println(s"1Updated min and max solution for size=${polygon.size}")
       case Some((None, None)) =>
         polygons = polygons.updated(polygon.size, (Some(polygon), Some(polygon)))
+        println(s"2Updated min and max solution for size=${polygon.size}")
       case Some((Some(min), None)) =>
-        if (polygon.doubleSurface < min.doubleSurface) polygons = polygons.updated(polygon.size, (Some(polygon), None))
-        else polygons = polygons.updated(polygon.size, (Some(min), Some(polygon)))
+        if (polygon.doubleSurface < min.doubleSurface) {
+          polygons = polygons.updated(polygon.size, (Some(polygon), Some(min)))
+          println(s"3Updated min and max solution for size=${polygon.size}, score increased by raw ${min.doubleSurface-polygon.doubleSurface}/2")
+        }
+        else {
+          polygons = polygons.updated(polygon.size, (Some(min), Some(polygon)))
+          println(s"4Updated max solution for size=${polygon.size}, score increased by raw ${polygon.doubleSurface-min.doubleSurface}/2")
+        }
       case Some((None, Some(max))) =>
-        if (polygon.doubleSurface > max.doubleSurface) polygons = polygons.updated(polygon.size, (None, Some(polygon)))
-        else polygons = polygons.updated(polygon.size, (Some(polygon), Some(max)))
+        if (polygon.doubleSurface > max.doubleSurface) {
+          polygons = polygons.updated(polygon.size, (Some(max), Some(polygon)))
+          println(s"5Updated min and max solution for size=${polygon.size}, score increased by raw ${polygon.doubleSurface-max.doubleSurface}/2")
+        }
+        else {
+          polygons = polygons.updated(polygon.size, (Some(polygon), Some(max)))
+          println(s"6Updated min solution for size=${polygon.size}, score increased by raw ${max.doubleSurface-polygon.doubleSurface}/2")
+        }
       case Some((Some(min), Some(max))) =>
-        if (polygon.doubleSurface > max.doubleSurface) polygons = polygons.updated(polygon.size, (Some(min), Some(polygon)))
-        if (polygon.doubleSurface < min.doubleSurface) polygons = polygons.updated(polygon.size, (Some(polygon), Some(max)))
+        if (polygon.doubleSurface > max.doubleSurface) {
+          polygons = polygons.updated(polygon.size, (Some(min), Some(polygon)))
+          println(s"7Updated max solution for size=${polygon.size}, score increased by raw ${polygon.doubleSurface-max.doubleSurface}/2")
+        }
+        if (polygon.doubleSurface < min.doubleSurface) {
+          polygons = polygons.updated(polygon.size, (Some(polygon), Some(max)))
+          println(s"8Updated min solution for size=${polygon.size}, score increased by raw ${min.doubleSurface-polygon.doubleSurface}/2")
+        }
     }
   }
 
-  def saveToFile(): Unit = {
-    val polygonStrings = for (size <- polygons.keys) yield {
+  def saveToFile(): Unit = this.synchronized {
+    val polygonStrings = for (size <- polygons.keys.toIndexedSeq.sorted) yield {
       polygons.get(size) match {
         case None =>
           ""
         case Some((None, None)) =>
           ""
         case Some((Some(min), None)) =>
-          min.points.mkString(",")
+          min.points.map(asPair).mkString(",")
         case Some((None, Some(max))) =>
-          max.points.mkString(",")
+          max.points.map(asPair).mkString(",")
         case Some((Some(min), Some(max))) =>
-          min.points.mkString(",") + ";\n" + max.points.mkString(",")
+          min.points.map(asPair).mkString(",") + ";\n" + max.points.map(asPair).mkString(",")
       }
     }
 
-    val result = polygonStrings.filter(str => str.length > 0).mkString("\n")
+    val result = polygonStrings.filter(str => str.length > 0).mkString(";\n")
     new PrintWriter(filename) {
       Try(write(result))
       close()
