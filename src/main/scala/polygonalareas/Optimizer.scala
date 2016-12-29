@@ -27,10 +27,11 @@ class Optimizer(n: Int, seed: Int = Random.nextInt()) {
   def searchPolygons(amount: Int): Set[Polygon] = {
     val gen = new ConvexHullPolygonGenerator(n, seed)
     var result = Set.empty[Polygon]
-    while (result.size < amount) {
-      val found = (for (i <- (1 to 100).par) yield {
-        gen.generatePolygons
-      }).flatten
+    val pointSets = (1 to n).permutations.map(perm => ((1 to n) zip perm).map{case (x,y) => Point(x,y)})
+    val stepSize = 100
+    val steps = pointSets.grouped(stepSize)
+    while (result.size < amount && steps.hasNext) {
+      val found = (for (points <- steps.next) yield gen.generatePolygonsWithPoints(points)).flatten
       result = result ++ found.map(points => Polygon(points.toArray)).toSet
     }
     result

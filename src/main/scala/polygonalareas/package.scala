@@ -32,6 +32,18 @@ package object polygonalareas {
       * @return the direction of this line as a 2D vector
       */
     lazy val vector: Vector2D = p2 - p1
+
+    def intersects(other: LineSegment): Boolean = {
+      val t = ((other.p1 - p1) x other.vector).toDouble / (vector x other.vector)
+      val u = ((other.p1 - p1) x vector).toDouble / (vector x other.vector).toDouble
+      val sharesPoint = sharesPointWith(other)
+      val tuValid = 0 <= u && u <= 1 && 0 <= t && t <= 1
+      !sharesPoint && tuValid
+    }
+
+    private def sharesPointWith(other: LineSegment): Boolean = {
+      p1 == other.p1 || p1 == other.p2 || p2 == other.p1 || p2 == other.p2
+    }
   }
 
   implicit def asPair: Point => (Int, Int) = p => (p.x, p.y)

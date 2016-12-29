@@ -22,12 +22,34 @@ class ConvexHullPolygonGenerator(n: Int, seed: Int = Random.nextInt()) {
 
     // when no parallel edges are left continue adding points without creating parallel edges
     val result = for ((polygon, rest) <- fixedSet) yield {
-      val v = completePolygon(polygon, rest)
+      val v = completePolygon(polygon, rest).filter(polygon => findParallelEdges(polygon).isEmpty)
       //      println(s"phase 3 result: $v")
       v
     }
 
     result.flatten
+  }
+
+  def generatePolygons2: Set[IndexedSeq[Point]] = {
+    val points = PointGenerator.generateRandomPoints(n, random.nextInt())
+    generatePolygonsWithPoints(points)
+  }
+
+  def generatePolygonsWithPoints(points: IndexedSeq[Point]): Set[IndexedSeq[Point]] = {
+    val (convexHull, rest) = ConvexHullGenerator.getConvexHullFromSortedPoints(points)
+    if (rest.isEmpty) {
+      val polygon = Polygon(convexHull.toArray)
+      if (polygon.angles.getSet.size == polygon.size) Set(convexHull)
+      else Set.empty
+    }
+    else {
+      val first = PolygonConstruct(convexHull, rest, findParallelEdges(convexHull))
+      var set = Set(first)
+      while (set.exists(pc => pc.rest.nonEmpty)) {
+        set = set.flatMap(pc => pc.nextStep)
+      }
+      set.map(pc => pc.points)
+    }
   }
 
   def findParallelEdges(points: IndexedSeq[Point]): Seq[Seq[Int]] = {
@@ -93,6 +115,7 @@ class ConvexHullPolygonGenerator(n: Int, seed: Int = Random.nextInt()) {
     fixR(convexHull, rest, parallelEdges)
   }
 
+  // TODO: allow creation of parallel edge if it can be removed later???
   def completePolygon(points: IndexedSeq[Point], rest: Set[Point]): Set[IndexedSeq[Point]] = {
     if (rest.nonEmpty) {
       // find indices at which p can be injected
