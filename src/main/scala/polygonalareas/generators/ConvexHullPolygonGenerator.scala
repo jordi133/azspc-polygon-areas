@@ -47,6 +47,9 @@ class ConvexHullPolygonGenerator(n: Int, seed: Int = Random.nextInt()) {
       var set = Set(first)
       while (set.exists(pc => pc.rest.nonEmpty)) {
         set = set.flatMap(pc => pc.nextStep)
+        val restSize = if (set.iterator.hasNext) set.iterator.next().rest.size else 0
+        println(s"setsize: ${set.size} for rest size $restSize")
+//        println(s"Parallel edges: ${set.map(pc => pc.parallelEdgesCount).mkString(", ")}")
       }
       set.map(pc => pc.points)
     }

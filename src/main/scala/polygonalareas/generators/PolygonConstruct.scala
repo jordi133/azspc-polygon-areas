@@ -42,7 +42,8 @@ object PolygonConstruct {
       if (i + 1 != indexToInjectAt && angle == newAngle1) edgesParallelToAngle1 +:= i
       if (i + 1 != indexToInjectAt && angle == newAngle2) edgesParallelToAngle2 +:= i
     }
-    (edgesParallelToAngle1 +: Seq(edgesParallelToAngle2)).filter(_.nonEmpty)
+    val newAnglesParallel = if (newAngle1 == newAngle2) Seq(indexToInjectAtEdge, indexToInjectAtEdge + 1) else Seq.empty[Int]
+    (newAnglesParallel +: edgesParallelToAngle1 +: Seq(edgesParallelToAngle2)).filter(_.nonEmpty)
   }
 
   def injectingCreatesIntersectingEdges(points: IndexedSeq[Point], indexToInjectAtEdge: Int, pointToInject: Point, rest: Set[Point]): Boolean = {
@@ -63,9 +64,6 @@ object PolygonConstruct {
     val r3 = rightTurn(p3, p1, point)
     r1 == r2 && r2 == r3
   }
-
-
-
 }
 
 /**
@@ -74,17 +72,58 @@ object PolygonConstruct {
   * @param parallelEdges all parallel edges (grouped) indicated by their starting vertex
   */
 case class PolygonConstruct(points: IndexedSeq[Point], rest: Set[Point], parallelEdges: Seq[Seq[Int]]) {
+  val parallelEdgesCount = parallelEdges.map(edges => edges.length - 1).sum
+
+  def parallelEdgesCountAfterMovingPoint(index: Int): Int = {
+    val removed = parallelEdges.count(seq => seq.contains(index) && seq.contains((index + 1) % points.length))
+    parallelEdgesCount - removed
+  }
 
   def nextStep: Set[PolygonConstruct] = {
-    val parallelEdgesCount = parallelEdges.map(edges => edges.length - 1).sum
     if (parallelEdgesCount <= rest.size) {
       nextStepNoParallelEdges
     } else {
       Set.empty[PolygonConstruct]
     }
-//      if (parallelEdges.nonEmpty) nextStepRemoveParallelEdge
-//    else nextStepNoParallelEdges
   }
+
+  def nextStepNoParallelEdges: Set[PolygonConstruct] = {
+    def findNewParallelEdges(points: IndexedSeq[Point], pointAdded: Int): Seq[Seq[Int]] = {
+      val newAngle1Index = (pointAdded + points.size - 1) % points.size
+      val newAngle2Index = (pointAdded + points.size) % points.size
+      val newAngle1 = AnglesSet.normalize(points(pointAdded) - points(newAngle1Index))
+      val newAngle2 = AnglesSet.normalize(points(pointAdded) - points(newAngle2Index))
+
+      for {
+        i <- points.indices if i - 1 != pointAdded && i != pointAdded
+        vector = points((i + 1) % points.length) - points(i)
+        norm = AnglesSet.normalize(vector) if norm == newAngle1 || norm == newAngle2
+      } yield {
+        if (norm == newAngle1) Seq(newAngle1Index, i)
+        else Seq(newAngle2Index, i)
+      }
+    }
+    def potentialPointsFilter(pointToInject: Point, indexToInjectAfter: Int): Boolean = {
+      val restInsize = injectingLeavesRestInside(points, indexToInjectAfter, pointToInject, rest - pointToInject)
+      val intersections = !injectingCreatesIntersectingEdges(points, indexToInjectAfter, pointToInject, rest)
+      val createsParallelEdgesOk = parallelEdgesCountAfterMovingPoint(indexToInjectAfter) + injectingCreatesParallelEdges(points, indexToInjectAfter, pointToInject, rest - pointToInject).size < rest.size
+      restInsize && intersections && createsParallelEdgesOk
+    }
+    // don't create more new parallel edges than there will be points left in rest
+    val possibleIndices = points.indices
+    val result = possibleIndices.toSet.map { indexToInjectAfter: Int =>
+      val potentialPoints = rest.filter { p => potentialPointsFilter(p, indexToInjectAfter) }
+      potentialPoints.map { p =>
+        val newPoints = points.take(indexToInjectAfter + 1) ++ (p +: points.drop(indexToInjectAfter + 1))
+        val newParallelEdges = findNewParallelEdges(newPoints, indexToInjectAfter + 1)
+        PolygonConstruct(newPoints, rest - p, newParallelEdges)
+      }
+    }
+    //    result.flatten.filter(pc => pc.parallelEdges.size <= pc.rest.size)
+    if (result.flatten.isEmpty) Set.empty
+    else result.flatten
+  }
+
 
   def nextStepRemoveParallelEdge: Set[PolygonConstruct] = {
     val possibleIndices = parallelEdges.head
@@ -92,7 +131,7 @@ case class PolygonConstruct(points: IndexedSeq[Point], rest: Set[Point], paralle
     val result = possibleIndices.toSet.map { indexToInjectAfter: Int =>
       val potentialPoints = rest.filter { p => injectingIsAllowed(points, indexToInjectAfter, p, rest - p) }
       potentialPoints.map { p =>
-        val newPoints = points.take(indexToInjectAfter+1) ++ (p +: points.drop(indexToInjectAfter+1))
+        val newPoints = points.take(indexToInjectAfter + 1) ++ (p +: points.drop(indexToInjectAfter + 1))
         val newParallelEdges =
           if (parallelEdges.head.length > 2) {
             parallelEdges.head.filter(_ != indexToInjectAfter) +: parallelEdges.tail
@@ -104,47 +143,5 @@ case class PolygonConstruct(points: IndexedSeq[Point], rest: Set[Point], paralle
     }
 
     result.flatten
-  }
-
-//  def nextStepNoParallelEdges(allowCreationParallelEdges: Boolean): Set[PolygonConstruct] = {
-  def nextStepNoParallelEdges: Set[PolygonConstruct] = {
-    def findNewParallelEdges(points: IndexedSeq[Point], pointAdded: Int): Seq[Seq[Int]] = {
-      val newAngle1Index = (pointAdded+points.size-1) % points.size
-      val newAngle2Index = (pointAdded+points.size) % points.size
-      val newAngle1 = AnglesSet.normalize(points(pointAdded) - points(newAngle1Index))
-      val newAngle2 = AnglesSet.normalize(points(pointAdded) - points(newAngle2Index))
-
-      for {
-        i <- points.indices if i-1 != pointAdded && i != pointAdded
-        vector = points((i + 1) % points.length) - points(i)
-        norm = AnglesSet.normalize(vector) if norm == newAngle1 || norm == newAngle2
-      } yield {
-        if (norm == newAngle1) Seq(newAngle1Index, i)
-        else Seq(newAngle2Index, i)
-      }
-    }
-    def potentialPointsFilter(pointToInject: Point, indexToInjectAfter: Int): Boolean = {
-              injectingLeavesRestInside(points, indexToInjectAfter, pointToInject, rest - pointToInject) &&
-                injectingCreatesParallelEdges(points, indexToInjectAfter, pointToInject, rest - pointToInject).size < rest.size - 1
-//      if (allowCreationParallelEdges) {
-//        injectingLeavesRestInside(points, indexToInjectAfter, pointToInject, rest - pointToInject)
-//      } else {
-//        injectingLeavesRestInside(points, indexToInjectAfter, pointToInject, rest - pointToInject) &&
-//          injectingCreatesParallelEdges(points, indexToInjectAfter, pointToInject, rest - pointToInject).isEmpty
-//      }
-    }
-    // don't create more new parallel edges than there will be points left in rest
-    val possibleIndices = points.indices
-
-    val result = possibleIndices.toSet.map { indexToInjectAfter: Int =>
-      val potentialPoints = rest.filter { p =>  potentialPointsFilter(p, indexToInjectAfter)}
-//      val potentialPoints = rest.filter { p =>  potentialPointsFilter(p, indexToInjectAfter)}
-      potentialPoints.map { p =>
-        val newPoints = points.take(indexToInjectAfter + 1) ++ (p +: points.drop(indexToInjectAfter + 1))
-        val newParallelEdges = findNewParallelEdges(newPoints, indexToInjectAfter+1)
-        PolygonConstruct(newPoints, rest - p, newParallelEdges)
-      }
-    }
-    result.flatten.filter(pc => pc.parallelEdges.size <= pc.rest.size)
   }
 }

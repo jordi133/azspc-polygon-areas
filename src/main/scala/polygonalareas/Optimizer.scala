@@ -12,6 +12,7 @@ import scala.util.Random
   */
 class Optimizer(n: Int, seed: Int = Random.nextInt()) {
   println(s"Created Optimizer with seed = $seed")
+  val random = new Random(seed)
 
   def search() = {
     // generate set of polygons
@@ -25,13 +26,22 @@ class Optimizer(n: Int, seed: Int = Random.nextInt()) {
   }
 
   def searchPolygons(amount: Int): Set[Polygon] = {
+    val stepSize = 10
+    val base = (1 to n).toVector
+    def steps: Seq[IndexedSeq[Int]] = {
+      for (_ <- 1 to stepSize) yield random.shuffle(base)
+    }
     val gen = new ConvexHullPolygonGenerator(n, seed)
     var result = Set.empty[Polygon]
-    val pointSets = (1 to n).permutations.map(perm => ((1 to n) zip perm).map{case (x,y) => Point(x,y)})
-    val stepSize = 100
-    val steps = pointSets.grouped(stepSize)
-    while (result.size < amount && steps.hasNext) {
-      val found = (for (points <- steps.next) yield gen.generatePolygonsWithPoints(points)).flatten
+    //    val pointSets = (1 to n).permutations
+    //    val steps = random.shuffle(pointSets.grouped(stepSize))
+    while (result.size < amount) {
+      val found = (for (step <- steps) yield {
+        //        println(s"doing step: $step")
+        val points = ((1 to n) zip step).map { case (x, y) => Point(x, y) }
+        gen.generatePolygonsWithPoints(points)
+      }).flatten
+      for (f <- found) println(s"Found (n=$n): $found")
       result = result ++ found.map(points => Polygon(points.toArray)).toSet
     }
     result

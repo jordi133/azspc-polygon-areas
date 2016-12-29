@@ -23,6 +23,17 @@ object Polygon {
     }
     result
   }
+
+  def doubleSurface(points: Seq[Point]): Int = {
+    var (dx, dy) = (0, 0)
+    var i = 0
+    while (i < points.length + 1) {
+      dx += points(i % points.length).x * points((i + 1) % points.length).y
+      dy += points((i + 1) % points.length).x * points(i % points.length).y
+      i += 1
+    }
+    Math.abs(dy - dx)
+  }
 }
 
 class Polygon private(val points: Array[Point], val angles: AnglesSet) {
@@ -33,16 +44,7 @@ class Polygon private(val points: Array[Point], val angles: AnglesSet) {
     *
     * @return twice the surface of this polygon
     */
-  def doubleSurface: Int = {
-    var (dx, dy) = (0, 0)
-    var i = 0
-    while (i < points.length + 1) {
-      dx += points(i % points.length).x * points((i + 1) % points.length).y
-      dy += points((i + 1) % points.length).x * points(i % points.length).y
-      i += 1
-    }
-    Math.abs(dy - dx)
-  }
+  def doubleSurface: Int = Polygon.doubleSurface(points)
 
   /**
     *
