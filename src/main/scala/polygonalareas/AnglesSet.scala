@@ -9,6 +9,16 @@ object AnglesSet {
 
   def empty = new AnglesSet(Set.empty[Vector2D])
 
+  def fromPoints(points: IndexedSeq[Point]): AnglesSet = {
+    var result = empty
+
+    for (i <- points.indices) {
+      val ls = points((i + 1) % points.length) - points(i)
+      result = result.put(ls)
+    }
+    result
+  }
+
   /**
     * @return v normalized by dividing both components by the gcd and flipping
     *         direction to make y (and x if possible) positive while keeping the angle the same
@@ -55,5 +65,9 @@ class AnglesSet private(angles: Set[Vector2D]) {
 
   def removeAll(vs: Set[Vector2D]) = new AnglesSet(angles diff vs.map(normalize))
 
-  def getSet = angles
+  def remove(v: Vector2D) = new AnglesSet(angles - normalize(v))
+
+  def size = angles.size
+
+  override def toString = s"AnglesSet: ${angles.mkString(", ")}"
 }

@@ -38,7 +38,7 @@ object SolutionManager {
   }
 
   def addSolution(polygon: Polygon) = {
-    require(polygon.angles.getSet.size == polygon.size, s"polygon has parallel edges: $polygon")
+    require(polygon.angles.size == polygon.size, s"polygon has parallel edges: $polygon")
     require(!polygon.isSelfIntersecting, s"polygon is self intersecting: $polygon")
     polygons.get(polygon.size) match {
       case None =>

@@ -1,7 +1,7 @@
 package polygonareas
 
 import org.scalatest.WordSpec
-import polygonalareas.{AnglesSet, Vector2D}
+import polygonalareas.{AnglesSet, Point, Vector2D}
 
 /**
   * Created by Jordi on 16-12-2016.
@@ -38,6 +38,18 @@ class AnglesSetTest extends WordSpec {
       assert(as.contains((-3,0)) === true)
       assert(as.contains((-1,2)) === true)
       assert(as.contains((2,-4)) === true)
+    }
+  }
+
+  "fromPoints" should {
+    "return the anglesset for those poitns" in {
+      val points = Vector(Point(0,0), Point(1,0), Point(0,1))
+      val angles = AnglesSet.fromPoints(points)
+      println(s"angles: $angles")
+      assert(angles.contains(Vector2D(-1, 1)))
+      assert(angles.contains(Vector2D(0, 1)))
+      assert(angles.contains(Vector2D(1, 0)))
+      assert(angles.size === 3)
     }
   }
 

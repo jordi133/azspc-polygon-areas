@@ -72,7 +72,7 @@ object Mutation {
 
       val result = Polygon(newPoints)
       val testResult =
-        if (result.angles.getSet.size != result.size) Some(DuplicateAngle(p))
+        if (result.angles.size != result.size) Some(DuplicateAngle(p))
         else testMutationOnSelfIntersection(p, indicesToChange, changedPoints, result)
 
       if (testResult.isEmpty) {

@@ -51,7 +51,7 @@ class Optimizer(n: Int, seed: Int = Random.nextInt()) {
     val gen = new TwoStepPolygonGenerator(n, seed)
 
     val polygons = for (i <- 1 to tries) yield gen.generateStarPolygon
-    val result = polygons.filter(p => p.angles.getSet.size == p.size)
+    val result = polygons.filter(p => p.angles.size == p.size)
     println(s"Generator success (size=$n): ${result.size.toDouble / tries} (${result.size} out of $tries)")
     result
   }

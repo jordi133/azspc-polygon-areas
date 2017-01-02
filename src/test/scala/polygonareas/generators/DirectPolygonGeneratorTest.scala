@@ -18,7 +18,7 @@ class DirectPolygonGeneratorTest extends WordSpec {
           case Some(p) =>
             println(s"Generated $p")
             assert(!p.isSelfIntersecting)
-            assert(p.angles.getSet.size === p.size)
+            assert(p.angles.size === p.size)
             successRate += 1
           case None =>
         }

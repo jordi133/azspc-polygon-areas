@@ -24,7 +24,7 @@ class PolygonConstructTest extends WordSpec {
         assert(next.points.size == points.size + 1)
         assert(next.parallelEdges.isEmpty)
         assert(!Polygon(next.points.toArray).isSelfIntersecting)
-        assert(Polygon(next.points.toArray).angles.getSet.size == next.points.size)
+        assert(Polygon(next.points.toArray).angles.size == next.points.size)
       }
     }
   }
@@ -42,7 +42,7 @@ class PolygonConstructTest extends WordSpec {
         assert(next.points.size == points.size + 1)
         assert(next.parallelEdges.size <= 1)
         if (next.parallelEdges.nonEmpty) assert(next.parallelEdges.head.size <= 2)
-        if (next.parallelEdges.isEmpty) assert(Polygon(next.points.toArray).angles.getSet.size == next.points.size)
+        if (next.parallelEdges.isEmpty) assert(Polygon(next.points.toArray).angles.size == next.points.size)
         assert(!Polygon(next.points.toArray).isSelfIntersecting)
       }
     }
@@ -56,7 +56,7 @@ class PolygonConstructTest extends WordSpec {
       val step3 = step2.flatMap(_.nextStep)
       step3.foreach{ pc =>
         val polygon = Polygon(pc.points.toArray)
-        assert(polygon.angles.getSet.size == polygon.size)
+        assert(polygon.angles.size == polygon.size)
       }
     }
 //    "generatePolygonsWithPoints" in {

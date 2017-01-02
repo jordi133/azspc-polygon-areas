@@ -5,10 +5,6 @@ package polygonalareas
   */
 object Implicits {
 
-  implicit class LineSegmentOps(ls: LineSegment) {
-
-  }
-
   implicit def PointToTuple(p: Point): (Int, Int) = (p.x, p.y)
 
 }

@@ -39,7 +39,7 @@ class ConvexHullPolygonGenerator(n: Int, seed: Int = Random.nextInt()) {
     val (convexHull, rest) = ConvexHullGenerator.getConvexHullFromSortedPoints(points)
     if (rest.isEmpty) {
       val polygon = Polygon(convexHull.toArray)
-      if (polygon.angles.getSet.size == polygon.size) Set(convexHull)
+      if (polygon.angles.size == polygon.size) Set(convexHull)
       else Set.empty
     }
     else {

@@ -29,7 +29,7 @@ class MutationTest extends WordSpec {
           println(s"Result after $i attempts of tryMutation: ${pm.points.mkString(", ")}")
           pMutated = Some(pm)
           assert(!pm.isSelfIntersecting)
-          assert(pm.angles.getSet.size === pm.size)
+          assert(pm.angles.size === pm.size)
         }
       }
       assert(pMutated.isDefined)
@@ -40,7 +40,7 @@ class MutationTest extends WordSpec {
         Mutation.tryMutation(p, 3).toOption foreach { pMutated =>
           println(s"triple swap result after $i attempts: ${pMutated.points.mkString(", ")}")
           assert(!pMutated.isSelfIntersecting)
-          assert(pMutated.angles.getSet.size === pMutated.size)
+          assert(pMutated.angles.size === pMutated.size)
         }
       }
     }
