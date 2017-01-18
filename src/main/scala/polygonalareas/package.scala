@@ -7,6 +7,17 @@ package object polygonalareas {
 
   val puzzleSizes = List(5, 7, 11, 17, 23, 29, 37, 47, 59, 71, 83, 97, 113, 131, 149, 167, 191, 223, 257, 293, 331, 373, 419, 467, 521)
 
+  def doubleSurface(points: Seq[Point]): Int = {
+    var (dx, dy) = (0, 0)
+    var i = 0
+    while (i < points.length + 1) {
+      dx += points(i % points.length).x * points((i + 1) % points.length).y
+      dy += points((i + 1) % points.length).x * points(i % points.length).y
+      i += 1
+    }
+    Math.abs(dy - dx)
+  }
+
   /**
     * A point consists of two integer coordinates, representing a point in a 2D grid
     */

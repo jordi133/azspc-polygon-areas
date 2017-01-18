@@ -42,6 +42,22 @@ class LineBasedGeneratorTest extends WordSpec {
       SolutionManager.addSolution(sorted.last)
       SolutionManager.saveToFile()
     }
+    "Run with limited population size" in {
+      //      for (size <- puzzleSizes) {
+      val size = puzzleSizes(4)
+      val gen = new LineBasedGenerator(size, seed = 0)
+      val pols = gen.generatePolygons(1000)
+      //        assert(pols.nonEmpty)
+      //        for (p <- pols) {
+      //          val polygon = Polygon(p.toArray)
+      //          println(polygon)
+      //          assert(!polygon.isSelfIntersecting  )
+      //          assert(polygon.angles.size == polygon.size)
+      //        }
+      for (p <- pols) SolutionManager.addSolution(Polygon(p.toArray))
+      SolutionManager.saveToFile()
+    }
+
   }
 
 
