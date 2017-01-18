@@ -5,6 +5,8 @@ import scala.annotation.tailrec
   */
 package object polygonalareas {
 
+  val puzzleSizes = List(5, 7, 11, 17, 23, 29, 37, 47, 59, 71, 83, 97, 113, 131, 149, 167, 191, 223, 257, 293, 331, 373, 419, 467, 521)
+
   /**
     * A point consists of two integer coordinates, representing a point in a 2D grid
     */

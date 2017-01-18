@@ -8,6 +8,8 @@ import scala.util.Random
   * Created by Jordi on 2-1-2017.
   *
   * Generates a polygon by starting with a triangle and then adding new points, while maintaining the invariants
+  *
+  * Problem: a final polygon might be valid while the same polygon with one point less is invalid
   */
 class TriangleBasedGenerator(n: Int, seed: Int = Random.nextInt()) {
 
@@ -15,30 +17,36 @@ class TriangleBasedGenerator(n: Int, seed: Int = Random.nextInt()) {
     ???
   }
 
-  def getPolygons(init: IndexedSeq[Point]) = {
+  def getPolygons(init: IndexedSeq[Point]): Set[IndexedSeq[Point]] = {
 
-    var tc = TriangleConstruct(init)
-    while (tc.rest.nonEmpty) {
-      val diffs = for {
-        i <- tc.points.indices
-        p <- tc.rest if tc.canAddPoint(i, p)
-      } yield (i, p) -> tc.doubleSurfaceDiffForPoint(i, p)
+    val tc = TriangleConstruct(init)
 
-      val (i, p) = diffs.maxBy(_._2)._1
-      tc = tc.addPoint(i, p)
+    var pop = Set(tc)
+
+    while (pop.iterator.hasNext && pop.iterator.next.rest.nonEmpty) {
+      pop = pop flatMap (_.nextStep(-1))
+      println(s"pop size: ${pop.size}")
     }
+
+    pop map (_.points)
+
   }
 
   object TriangleConstruct {
-    private val allPoints = ((1 to n) zip (1 to n)).map { case (x, y) => Point(x, y) }
+    private val allPoints = for {
+      x <- 1 to n
+      y <- 1 to n
+    } yield Point(x, y)
 
     def apply(points: IndexedSeq[Point]): TriangleConstruct = {
-      val rest = allPoints filter (p => points.exists(_.x == p.x) || points.exists(_.y == p.y))
+      require(points.forall{p => 1 <= p.x && p.x <= n && 1 <= p.y && p.y <= n}, s"A point exceeds bounds [1,$n] in $points")
+      val rest = allPoints filter (p => !points.exists(_.x == p.x)) filter (p => !points.exists(_.y == p.y))
+      println(s"result of init($points): rest=$rest")
       new TriangleConstruct(points, rest, AnglesSet.fromPoints(points))
     }
   }
 
-  class TriangleConstruct private(val points: IndexedSeq[Point], val rest: Seq[Point], angles: AnglesSet) {
+  case class TriangleConstruct private(points: IndexedSeq[Point], rest: Seq[Point], angles: AnglesSet) {
     /**
       * Invariants:
       * - angles.size == points.size (there are no parallel angles)
@@ -67,7 +75,7 @@ class TriangleBasedGenerator(n: Int, seed: Int = Random.nextInt()) {
       def intersectionsOk: Boolean = {
         val newEdge1 = LineSegment(p, points(i))
         val newEdge2 = LineSegment(p, points((i + 1) % points.length))
-        points.indices.exists { index =>
+        !points.indices.exists { index =>
           val ls = LineSegment(points(index), points((index + 1) % points.size))
           index != i && ((newEdge1 intersects ls) || (newEdge2 intersects ls))
         }
@@ -94,7 +102,21 @@ class TriangleBasedGenerator(n: Int, seed: Int = Random.nextInt()) {
         p <- rest if canAddPoint(i, p)
       } yield (i, p) -> doubleSurfaceDiffForPoint(i, p)
 
-      val results = diffs.sortBy(-_._2).map(_._1).take(maxAmount)
+      val amount = if (maxAmount > 0) maxAmount else diffs.size
+      val results = diffs.sortBy(-_._2).map(_._1).take(amount)
+      //      println(s"results for nextStep of $this: $results")
+      results.map { case (i, p) => addPoint(i, p) }.toSet
+    }
+
+    def nextStepWithParallleEdges(maxAmount: Int): Set[TriangleConstruct] = {
+      val diffs: IndexedSeq[((Int, Point), Int)] = for {
+        i <- points.indices
+        p <- rest if canAddPoint(i, p)
+      } yield (i, p) -> doubleSurfaceDiffForPoint(i, p)
+
+      val amount = if (maxAmount > 0) maxAmount else diffs.size
+      val results = diffs.sortBy(-_._2).map(_._1).take(amount)
+      //      println(s"results for nextStep of $this: $results")
       results.map { case (i, p) => addPoint(i, p) }.toSet
     }
   }

@@ -1,7 +1,7 @@
 package polygonareas.generators
 
 import org.scalatest.WordSpec
-import polygonalareas.Point
+import polygonalareas.{Point, Polygon}
 import polygonalareas.generators.TriangleBasedGenerator
 
 /**
@@ -13,8 +13,14 @@ class TriangleBasedGeneratorTest extends WordSpec {
   "TriangleBasedGenerator" should {
     "Generate correct polygons" in {
       val gen = new TriangleBasedGenerator(5, seed = 0)
-      //      val p = gen.getPolygon(Vector(Point(1,1), Point(3,5), Point(5,3)))
-      assert(false) // TODO
+      val pols = gen.getPolygons(Vector(Point(1, 1), Point(4, 2), Point(5, 4)))
+      assert(pols.nonEmpty)
+      for (p <- pols) {
+        val polygon = Polygon(p.toArray)
+        println(polygon)
+        assert(!polygon.isSelfIntersecting  )
+        assert(polygon.angles.size == polygon.size)
+      }
     }
   }
 

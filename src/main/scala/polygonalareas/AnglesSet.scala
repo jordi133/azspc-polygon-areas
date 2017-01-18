@@ -67,6 +67,8 @@ class AnglesSet private(angles: Set[Vector2D]) {
 
   def remove(v: Vector2D) = new AnglesSet(angles - normalize(v))
 
+  def -(v: Vector2D) = remove(v)
+
   def size = angles.size
 
   override def toString = s"AnglesSet: ${angles.mkString(", ")}"
