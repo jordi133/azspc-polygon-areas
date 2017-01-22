@@ -18,6 +18,9 @@ package object polygonalareas {
     Math.abs(dy - dx)
   }
 
+  object Point {
+    def apply(tuple: (Int, Int)): Point = Point(tuple._1, tuple._2)
+  }
   /**
     * A point consists of two integer coordinates, representing a point in a 2D grid
     */

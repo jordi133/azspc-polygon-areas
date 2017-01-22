@@ -38,6 +38,7 @@ class LineBasedGenerator(n: Int, seed: Int = Random.nextInt()) {
         pop = (pop.par flatMap (_.nextStep(-1))).seq.toIndexedSeq
         pop = sortPopulation(pop, maximize).take(popSize)
         println(s"pop size: ${pop.size}")
+
       }
       pop.sortBy(_.surfaceIndication).take(popSize).headOption
     }

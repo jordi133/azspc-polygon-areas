@@ -11,7 +11,7 @@ import scala.util.Try
   * Object keeps track of solutions, saving candidate solutions if they are better than what has been found so far
   */
 object SolutionManager {
-  val filename = "solutions-linegenerator.txt"
+  val filename = "solutions-polygonfixer.txt"
 
   var polygons: Map[Int, (Option[Polygon], Option[Polygon])] = {
     var result = Map.empty[Int, (Option[Polygon], Option[Polygon])]
@@ -44,35 +44,43 @@ object SolutionManager {
       case None =>
         polygons = polygons.updated(polygon.size, (Some(polygon), Some(polygon)))
         println(s"1Updated min and max solution for size=${polygon.size}")
+        saveToFile()
       case Some((None, None)) =>
         polygons = polygons.updated(polygon.size, (Some(polygon), Some(polygon)))
         println(s"2Updated min and max solution for size=${polygon.size}")
+        saveToFile()
       case Some((Some(min), None)) =>
         if (polygon.doubleSurface < min.doubleSurface) {
           polygons = polygons.updated(polygon.size, (Some(polygon), Some(min)))
           println(s"3Updated min and max solution for size=${polygon.size}, score improved by raw ${min.doubleSurface - polygon.doubleSurface}/2")
+          saveToFile()
         }
         else {
           polygons = polygons.updated(polygon.size, (Some(min), Some(polygon)))
           println(s"4Updated max solution for size=${polygon.size}, score improved by raw -${polygon.doubleSurface - min.doubleSurface}/2")
+          saveToFile()
         }
       case Some((None, Some(max))) =>
         if (polygon.doubleSurface > max.doubleSurface) {
           polygons = polygons.updated(polygon.size, (Some(max), Some(polygon)))
           println(s"5Updated min and max solution for size=${polygon.size}, score improved by raw ${polygon.doubleSurface - max.doubleSurface}/2")
+          saveToFile()
         }
         else {
           polygons = polygons.updated(polygon.size, (Some(polygon), Some(max)))
           println(s"6Updated min solution for size=${polygon.size}, score improved by raw ${max.doubleSurface - polygon.doubleSurface}/2")
+          saveToFile()
         }
       case Some((Some(min), Some(max))) =>
         if (polygon.doubleSurface > max.doubleSurface) {
           polygons = polygons.updated(polygon.size, (Some(min), Some(polygon)))
           println(s"7Updated max solution for size=${polygon.size}, score improved by raw ${polygon.doubleSurface - max.doubleSurface}/2")
+          saveToFile()
         }
         if (polygon.doubleSurface < min.doubleSurface) {
           polygons = polygons.updated(polygon.size, (Some(polygon), Some(max)))
           println(s"8Updated min solution for size=${polygon.size}, score improved by raw -${min.doubleSurface - polygon.doubleSurface}/2")
+          saveToFile()
         }
     }
   }
