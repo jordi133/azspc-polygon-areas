@@ -32,4 +32,32 @@ object PointGenerator {
     }
     result
   }
+
+  def generateCrossPoints(n: Int, seed: Int = Random.nextInt()): IndexedSeq[Point] = {
+    val random = new Random(seed)
+    val center = n/2
+    val radiusStep = 4
+    def generatePoints(radius: Int, acc: Set[Point]): IndexedSeq[Point] = {
+      if (acc.size == n) {
+        acc.toIndexedSeq
+      }
+      else {
+        var potentialPoints = random.shuffle(for {
+          x <- (Math.max(center - radius, 1) to Math.min( center + radius, n)) filter (i => !acc.exists(p => p.x == i))
+          y <- (Math.max(center - radius, 1) to Math.min( center + radius, n)) filter (i => !acc.exists(p => p.y == i))
+          point = Point(x, y) if !acc.exists(p => p.x == x || p.y == y)
+        } yield point)
+
+        var newPoints = Set.empty[Point]
+        while (potentialPoints.nonEmpty) {
+          val p = potentialPoints.iterator.next()
+          newPoints = newPoints + p
+          potentialPoints = potentialPoints.filter(point => !(point.x == p.x || point.y == p.y))
+        }
+        generatePoints(radius + radiusStep, acc ++ newPoints)
+      }
+    }
+
+    generatePoints(1, Set.empty)
+  }
 }

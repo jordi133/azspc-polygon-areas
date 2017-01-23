@@ -60,6 +60,8 @@ package object polygonalareas {
     private def sharesPointWith(other: LineSegment): Boolean = {
       p1 == other.p1 || p1 == other.p2 || p2 == other.p1 || p2 == other.p2
     }
+
+    def contains(p: Point): Boolean = p1 == p || p2 == p
   }
 
   implicit def asPair: Point => (Int, Int) = p => (p.x, p.y)

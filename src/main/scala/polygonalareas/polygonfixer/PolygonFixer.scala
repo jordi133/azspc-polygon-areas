@@ -10,29 +10,50 @@ import scala.util.Random
   *
   * First generates a polygon that could have parallel edges. Next, fix these edges
   */
-class PolygonFixer(seed: Int = Random.nextInt()) {
+class PolygonFixer(seed: Int = Random.nextInt(), offspringOnGoodPolygon: Int = 4) {
   val random = new Random(seed)
-  val offspringOnGoodPolygon = 4
 
-  def evolutionaryFix(initialPoints: IndexedSeq[Point], maximize: Boolean, popsize: Int = 10)(actionOnFound: IndexedSeq[Point] => Unit) = {
-    val sortSign = if (maximize) -1 else 1
+  def evolutionaryFix(initialPoints: IndexedSeq[Point], maximize: Boolean,
+                      popsize: Int = 10, maxRoundsWithoutImprovement: Int = 50)
+                     (actionOnFound: IndexedSeq[Point] => Unit) = {
+    val sortSign = if (maximize) 1 else -1
     var population = Set(Pol(createPolygon(initialPoints.toSet)))
-    var done = false
+//    var population = Set(Pol(createStarPolygon(initialPoints)))
+    var roundsWithoutImprovement = 0
+    var bestScore = -1
     var count = 0
-    while (!done && population.nonEmpty) {
-      val newPop = (population flatMap { pol => nextGen(pol)(actionOnFound) }).toIndexedSeq
-      val sorted = newPop.sortBy(pol => (-pol.angles.values.size, sortSign * doubleSurface(pol.points))).take(popsize)
-      println(s"round $count: newPop size = ${newPop.size}")
+    while (population.nonEmpty && (bestScore == -1 || roundsWithoutImprovement < maxRoundsWithoutImprovement)) {
+      val newPop = (population.par flatMap { pol => nextGen(pol)(actionOnFound) }).toIndexedSeq
+      val sorted = newPop.sortBy(pol => (-pol.angles.values.size, -sortSign * doubleSurface(pol.points))).take(popsize)
+      println(s"n: ${initialPoints.size}, maximize=$maximize, round $count: newPop size = ${newPop.size}")
       count += 1
       population = sorted.toSet
-      val parallelEdges = population.map(initialPoints.size - _.angles.values.size)
-      println(s"average parallel edges: ${parallelEdges.sum / parallelEdges.size}")
-      println(s"max parallel edges: ${parallelEdges.max}")
-      println(s"min parallel edges: ${parallelEdges.min}")
+      if (sorted.head.angles.size == initialPoints.size) {
+        val newBestPolygon = sorted.head
+        val newBestSurface = doubleSurface(newBestPolygon.points)
+        val improvement = if (bestScore == -1) newBestSurface else (newBestSurface - bestScore) * sortSign
+        if (improvement > 0) {
+          roundsWithoutImprovement = 0
+          bestScore = newBestSurface
+          actionOnFound(newBestPolygon.points)
+          println(s"bestScore = $bestScore, doubleSurface(newBestPolygon.points) = ${doubleSurface(newBestPolygon.points)}")
+        } else {
+          roundsWithoutImprovement += 1
+        }
+      } else {
+        val parallelEdges = population.map(initialPoints.size - _.angles.values.size)
+        println(s"min parallel edges: ${parallelEdges.min}")
+      }
     }
   }
 
   def nextGen(pol: Pol)(actionOnFound: IndexedSeq[Point] => Unit): Set[Pol] = {
+    def randomPairOfNeighboringIndices: Seq[Int] = {
+      val index1 = random.nextInt(pol.points.length - 1)
+      val index2Try = random.nextInt(pol.points.length - 2)
+      val index2 = if (index2Try == index1) pol.points.length - 1 else index2Try
+      Seq(index1, index2)
+    }
     def randomPairOfIndices: Seq[Int] = {
       val index = random.nextInt(pol.points.length - 1)
       Seq(index, index + 1)
@@ -46,11 +67,11 @@ class PolygonFixer(seed: Int = Random.nextInt()) {
 
     // mutate all parallel edges
     val indicesOfParallelEdges = angleToIndex.values.filter(_.length > 1).flatMap(_.sorted).toSeq
-    val indicesToHandle: Seq[Seq[Int]] = randomPairOfIndices +: {
+    val indicesToHandle: Seq[Seq[Int]] = randomPairOfNeighboringIndices +: {
       if (indicesOfParallelEdges.isEmpty) {
         // if no parallel edges exist, then find pair of points to mutate
-        actionOnFound(pol.points)
-        for (i <- 1 to offspringOnGoodPolygon) yield randomPairOfIndices
+        //        actionOnFound(pol.points)
+        for (i <- 1 to offspringOnGoodPolygon) yield if (i % 2 == 0) randomPairOfIndices else randomPairOfNeighboringIndices
       } else {
         // else use parallel edges to mutate
         (indicesOfParallelEdges flatMap { index =>
@@ -61,9 +82,9 @@ class PolygonFixer(seed: Int = Random.nextInt()) {
 
     val newPolygons = for {
       indices <- indicesToHandle
-//      indices <- indicesToHandle.take(5)
-      newPolygon <- Mutater.mutateGivenIndices(pol.points, indices) if !Polygon(newPolygon.toArray).isSelfIntersecting
-    //      newPolygon <- Mutater.mutateGivenIndices(points, indices) if !hasSelfIntersectingEdgesOnIndices(newPolygon.toIndexedSeq, indices)
+      //      indices <- indicesToHandle.take(5)
+      newPolygon <- Mutater.mutateGivenIndices(pol.points, indices) if !Polygon(newPolygon.toArray).isSelfIntersecting // TODO prevent linear complexity call here
+//          newPolygon <- Mutater.mutateGivenIndices(pol.points, indices) if !hasSelfIntersectingEdgesOnIndices(newPolygon.toIndexedSeq, indices)
     } yield newPolygon.toIndexedSeq
 
     newPolygons.map(Pol(_)).toSet
@@ -82,41 +103,44 @@ class PolygonFixer(seed: Int = Random.nextInt()) {
     calcMap(0, Map.empty)
   }
 
-  def fixPolygonFromPoints(points: IndexedSeq[Point], depth: Int = 0): Set[IndexedSeq[Point]] = {
-    val angleToIndex = getAngleToIndexMap(points)
+//  def fixPolygonFromPoints(points: IndexedSeq[Point], depth: Int = 0): Set[IndexedSeq[Point]] = {
+//    val angleToIndex = getAngleToIndexMap(points)
+//
+//    def getIndicesToMutate(indexOfParallelEdge: Int): Seq[Seq[Int]] = Seq(
+//      Seq(indexOfParallelEdge, (indexOfParallelEdge + 1) % points.length),
+//      Seq((indexOfParallelEdge + 1) % points.length, (indexOfParallelEdge + 2) % points.length)
+//    )
+//
+//    // mutate all parallel edges
+//    val indicesOfParallelEdges = angleToIndex.values.filter(_.length > 1).flatMap(_.sorted).toSeq
+//    val indicesToHandle: Iterable[Seq[Int]] = (indicesOfParallelEdges flatMap { index =>
+//      getIndicesToMutate(index)
+//    }).distinct
+//
+//    if (indicesToHandle.isEmpty) {
+//      println(s"found polygon: $points")
+//      Set(points)
+//    } else if (depth > 500) {
+//      Set.empty
+//    } else {
+//      println(s"depth=$depth, found ${indicesToHandle.size} parallel edges")
+//      val newPolygons = for {
+//        indices <- indicesToHandle
+//        newPolygon <- Mutater.mutateGivenIndices(points, indices) if !hasSelfIntersectingEdgesOnIndices(newPolygon.toIndexedSeq, indices)
+//      } yield fixPolygonFromPoints(newPolygon.toIndexedSeq, depth + 1)
+//      newPolygons.flatten.toSet
+//    }
+//  }
 
-    def getIndicesToMutate(indexOfParallelEdge: Int): Seq[Seq[Int]] = Seq(
-      Seq(indexOfParallelEdge, (indexOfParallelEdge + 1) % points.length),
-      Seq((indexOfParallelEdge + 1) % points.length, (indexOfParallelEdge + 2) % points.length)
-    )
-
-    // mutate all parallel edges
-    val indicesOfParallelEdges = angleToIndex.values.filter(_.length > 1).flatMap(_.sorted).toSeq
-    val indicesToHandle: Iterable[Seq[Int]] = (indicesOfParallelEdges flatMap { index =>
-      getIndicesToMutate(index)
-    }).distinct
-
-    if (indicesToHandle.isEmpty) {
-      println(s"found polygon: $points")
-      Set(points)
-    } else if (depth > 500) {
-      Set.empty
-    } else {
-      println(s"depth=$depth, found ${indicesToHandle.size} parallel edges")
-      val newPolygons = for {
-        indices <- indicesToHandle
-        newPolygon <- Mutater.mutateGivenIndices(points, indices) if !hasSelfIntersectingEdgesOnIndices(newPolygon.toIndexedSeq, indices)
-      } yield fixPolygonFromPoints(newPolygon.toIndexedSeq, depth + 1)
-      newPolygons.flatten.toSet
-    }
-  }
-
+  // TODO Fix this method
   def hasSelfIntersectingEdgesOnIndices(points: IndexedSeq[Point], indices: Seq[Int]): Boolean = {
     def getLineSegment(i: Int) = LineSegment(points(i), points((i + 1) % points.size))
-    val linesOnIndices = indices map { i => getLineSegment(i) }
+    val linesOnIndices: Seq[LineSegment] = indices flatMap { i => Seq(getLineSegment((i + points.size - 1) % points.size), getLineSegment(i)) }
 
-    points.indices.forall { i =>
-      indices.contains(i) || !linesOnIndices.exists(ls => ls intersects getLineSegment(i))
+    linesOnIndices.forall{ls =>
+      !points.indices.exists{i =>
+        (ls intersects getLineSegment(i)) && !ls.contains(points(i))
+      }
     }
   }
 
@@ -147,8 +171,31 @@ class PolygonFixer(seed: Int = Random.nextInt()) {
     pointsArray.toIndexedSeq
   }
 
+  def createStarPolygon(points: IndexedSeq[Point]): IndexedSeq[Point] = {
+    val n = points.length
+    def distToCenter(p: Point): Double ={
+      val dx = Math.abs(p.x - n /2)
+      val dy = Math.abs(p.y - n /2)
+      dx*dx+dy*dy
+    }
+    val sortedByDistToCenter = points.sortBy{p => distToCenter(p)}
+
+    // start with center
+    val center = sortedByDistToCenter.head
+
+    // work clockwise
+    val rest = sortedByDistToCenter.tail.sortWith{(p1, p2) =>
+      val angle =       (p1.x - center.x) * (p2.y - center.y) - (p2.x - center.x) * (p1.y - center.y)
+      val p1CloserToCenter = distToCenter(p1) < distToCenter(p2)
+      angle < 0 || angle == 0 && p1CloserToCenter
+    }
+
+    center +: rest
+  }
+
   case class Pol(points: IndexedSeq[Point]) {
     lazy val angles: Map[Vector2D, Seq[Int]] = getAngleToIndexMap(points)
 
   }
+
 }
