@@ -13,26 +13,28 @@ import scala.util.Random
 class PolygonFixer(seed: Int = Random.nextInt(), offspringOnGoodPolygon: Int = 4, maxOffSpring: Int = 10) {
   val random = new Random(seed)
 
-  def evolutionaryFix(initialPoints: IndexedSeq[Point], maximize: Boolean,
+  //  def evolutionaryFix(initialPoints: IndexedSeq[Point], maximize: Boolean,
+  def evolutionaryFix(pointGenerator: () => IndexedSeq[Point], maximize: Boolean,
                       popsize: Int = 10, maxRoundsWithoutImprovement: Int = 50)
                      (actionOnFound: IndexedSeq[Point] => Unit) = {
     val sortSign = if (maximize) 1 else -1
+    val initialPoints = pointGenerator()
     var population = Set(Pol(createPolygon(initialPoints.toSet)))
-//    var population = Set(Pol(createStarPolygon(initialPoints)))
+    //    var population = Set(Pol(createStarPolygon(initialPoints)))
     var roundsWithoutImprovement = 0
     var bestScore = -1
     var count = 0
     val bestEver = (if (maximize) SolutionManager.getMaxSolution(initialPoints.size) else SolutionManager.getMinSolution(initialPoints.size)) match {
-      case Some(polygon) => doubleSurface(polygon.points)
+      case Some(polygon) => doubleSurface(polygon)
       case _ => -1
     }
     while (population.nonEmpty && (bestScore == -1 || roundsWithoutImprovement < maxRoundsWithoutImprovement)) {
       val newPop = (population.par flatMap { pol => nextGen(pol)(actionOnFound) }).toIndexedSeq
       val sorted = newPop.sortBy(pol => (-pol.angles.values.size, -sortSign * doubleSurface(pol.points))).take(popsize)
-      println(s"n: ${initialPoints.size}, maximize=$maximize, round $count: newPop size = ${newPop.size}")
       count += 1
       population = sorted.toSet
       if (sorted.head.angles.size == initialPoints.size) {
+        //} && !Polygon(sorted.head.points.toArray).isSelfIntersecting) {
         val newBestPolygon = sorted.head
         val newBestSurface = doubleSurface(newBestPolygon.points)
         val improvement = if (bestScore == -1) newBestSurface else (newBestSurface - bestScore) * sortSign
@@ -40,14 +42,14 @@ class PolygonFixer(seed: Int = Random.nextInt(), offspringOnGoodPolygon: Int = 4
           roundsWithoutImprovement = 0
           bestScore = newBestSurface
           actionOnFound(newBestPolygon.points)
-
-          println(s"bestScore = $bestScore, bestEver: $bestEver, diff with best ever: ${Math.abs(bestScore - bestEver)}")
         } else {
           roundsWithoutImprovement += 1
         }
+        println(s"n: ${initialPoints.size} ${if (maximize) "max" else "min"}, round $count: newPop size = ${newPop.size}, bestScore = $bestScore, bestEver: $bestEver, diff with best ever: ${Math.abs(bestScore - bestEver)}")
+//        println(s"n: ${initialPoints.size} ${if (maximize) "max" else "min"}, round $count: newPop size = ${newPop.size}, improvement=$improvement, bestScore = $bestScore, bestEver: $bestEver, diff with best ever: ${Math.abs(bestScore - bestEver)}")
       } else {
         val parallelEdges = population.map(initialPoints.size - _.angles.values.size)
-        println(s"min parallel edges: ${parallelEdges.min}")
+        println(s"n: ${initialPoints.size} ${if (maximize) "max" else "min"}, round $count: newPop size = ${newPop.size}, min parallel edges: ${parallelEdges.min}")
       }
     }
   }
@@ -93,13 +95,18 @@ class PolygonFixer(seed: Int = Random.nextInt(), offspringOnGoodPolygon: Int = 4
       }
     }
 
-    val newPolygons = for {
+//    val newPolygonsFromSwaps = for {
+//      indices <- indicesToHandle
+//      newPolygon <- Mutater.mutateGivenIndices(pol.points, indices) if !hasSelfIntersectingEdgesOnIndices(newPolygon.toIndexedSeq, indices)
+//    } yield newPolygon.toIndexedSeq
+
+    val newPolygonsFromPointMutations = for {
       indices <- indicesToHandle
-      newPolygon <- Mutater.mutateGivenIndices(pol.points, indices) if !Polygon(newPolygon.toArray).isSelfIntersecting // TODO prevent linear complexity call here
-//          newPolygon <- Mutater.mutateGivenIndices(pol.points, indices) if !hasSelfIntersectingEdgesOnIndices(newPolygon.toIndexedSeq, indices)
+      newPolygon <- Mutater.mutateGivenIndices(pol.points, indices) if !hasSelfIntersectingEdgesOnIndices(newPolygon.toIndexedSeq, indices)
     } yield newPolygon.toIndexedSeq
 
-    newPolygons.map(Pol(_)).toSet
+//    (newPolygonsFromSwaps ++ newPolygonsFromPointMutations).map(Pol(_)).toSet
+    newPolygonsFromPointMutations.map(Pol(_)).toSet
   }
 
   def getAngleToIndexMap(points: IndexedSeq[Point]): Map[Vector2D, Seq[Int]] = {
@@ -114,16 +121,13 @@ class PolygonFixer(seed: Int = Random.nextInt(), offspringOnGoodPolygon: Int = 4
     calcMap(0, Map.empty)
   }
 
-  // TODO Fix this method
   def hasSelfIntersectingEdgesOnIndices(points: IndexedSeq[Point], indices: Seq[Int]): Boolean = {
     def getLineSegment(i: Int) = LineSegment(points(i), points((i + 1) % points.size))
-    val linesOnIndices: Seq[LineSegment] = indices flatMap { i => Seq(getLineSegment((i + points.size - 1) % points.size), getLineSegment(i)) }
+    val lineSegments = points.indices.map(getLineSegment)
+    def isNonIntersecting(ls: LineSegment): Boolean = lineSegments.forall(lineSegment => !(lineSegment intersects ls) || lineSegment.contains(ls.p1) || lineSegment.contains(ls.p2))
 
-    linesOnIndices.forall{ls =>
-      !points.indices.exists{i =>
-        (ls intersects getLineSegment(i)) && !ls.contains(points(i))
-      }
-    }
+    val indicesToCheck = indices.flatMap(i => Seq((i + points.length - 1) % points.length, i)).distinct
+    !indicesToCheck.forall { i => isNonIntersecting(getLineSegment(i)) }
   }
 
   def createPolygon(points: Set[Point]): IndexedSeq[Point] = {
@@ -153,19 +157,19 @@ class PolygonFixer(seed: Int = Random.nextInt(), offspringOnGoodPolygon: Int = 4
 
   def createStarPolygon(points: IndexedSeq[Point]): IndexedSeq[Point] = {
     val n = points.length
-    def distToCenter(p: Point): Double ={
-      val dx = Math.abs(p.x - n /2)
-      val dy = Math.abs(p.y - n /2)
-      dx*dx+dy*dy
+    def distToCenter(p: Point): Double = {
+      val dx = Math.abs(p.x - n / 2)
+      val dy = Math.abs(p.y - n / 2)
+      dx * dx + dy * dy
     }
-    val sortedByDistToCenter = points.sortBy{p => distToCenter(p)}
+    val sortedByDistToCenter = points.sortBy { p => distToCenter(p) }
 
     // start with center
     val center = sortedByDistToCenter.head
 
     // work clockwise
-    val rest = sortedByDistToCenter.tail.sortWith{(p1, p2) =>
-      val angle =       (p1.x - center.x) * (p2.y - center.y) - (p2.x - center.x) * (p1.y - center.y)
+    val rest = sortedByDistToCenter.tail.sortWith { (p1, p2) =>
+      val angle = (p1.x - center.x) * (p2.y - center.y) - (p2.x - center.x) * (p1.y - center.y)
       val p1CloserToCenter = distToCenter(p1) < distToCenter(p2)
       angle < 0 || angle == 0 && p1CloserToCenter
     }

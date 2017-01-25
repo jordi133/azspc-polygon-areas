@@ -17,7 +17,7 @@ class OptimizerTest extends WordSpec {
 //        val pop = opt.generateInitialPopulation(size * 5)
         println(s"searching for polygons of size $size")
         val results = opt.searchPolygons(10)
-        for (r <- results) solMgr.addSolution(r)
+        for (r <- results) solMgr.addSolution(r.points.toSeq)
         solMgr.saveToFile()
       }
     }

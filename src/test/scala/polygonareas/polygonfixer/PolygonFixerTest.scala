@@ -30,25 +30,22 @@ class PolygonFixerTest extends WordSpec {
     "yield polygons" in {
       val n = puzzleSizes(11)
       println(s"n=$n")
-      val points = PointGenerator.generateRandomPoints(n)
       val fixer = new PolygonFixer(0)
       val actionOnFound: IndexedSeq[Point] => Unit = { points =>
-        SolutionManager.addSolution(Polygon(points.toArray))
+        SolutionManager.addSolution(points)
       }
 
-      fixer.evolutionaryFix(points, true)(actionOnFound)
+      fixer.evolutionaryFix(PointGenerator.generateRandomPoints(n), true)(actionOnFound)
     }
 
     "find all" in {
-      val fixer = new PolygonFixer(0, offspringOnGoodPolygon = 10)
-      val actionOnFound: IndexedSeq[Point] => Unit = { points => SolutionManager.addSolution(Polygon(points.toArray)) }
+      val fixer = new PolygonFixer(0, offspringOnGoodPolygon = 25)
+      val actionOnFound: IndexedSeq[Point] => Unit = { points => SolutionManager.addSolution(points) }
 
-      for (n <- puzzleSizes.drop(0)) {
+      for (n <- puzzleSizes.drop(10)) {
         println(s"n=$n")
-        val points = PointGenerator.generateCrossPoints(n)
-        //        val points = PointGenerator.generateRandomPoints(n)
-        fixer.evolutionaryFix(points, false, popsize = 2000 / n)(actionOnFound)
-        fixer.evolutionaryFix(points, true, popsize = 2000 / n)(actionOnFound)
+        fixer.evolutionaryFix(PointGenerator.generateDiagonalPoints(n, Math.log(n).toInt), false, popsize = 2500 / n)(actionOnFound)
+        fixer.evolutionaryFix(PointGenerator.generateCircularPoints(n), true, popsize = 2500 / n)(actionOnFound)
       }
 
 

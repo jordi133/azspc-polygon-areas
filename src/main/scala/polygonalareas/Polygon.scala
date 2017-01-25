@@ -1,7 +1,5 @@
 package polygonalareas
 
-import Implicits.{ LineSegmentOps}
-
 /**
   * Created by Jordi on 12-12-2016.
   *
@@ -44,7 +42,7 @@ class Polygon private(val points: Array[Point], val angles: AnglesSet) {
     *
     * @return twice the surface of this polygon
     */
-  def doubleSurface: Int = Polygon.doubleSurface(points)
+  def doubleSurface: Int = polygonalareas.doubleSurface(points.toSeq)
 
   /**
     *

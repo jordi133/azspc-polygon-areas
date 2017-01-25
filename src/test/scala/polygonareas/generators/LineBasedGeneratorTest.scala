@@ -2,8 +2,7 @@ package polygonareas.generators
 
 import org.scalatest.WordSpec
 import polygonalareas.generators.LineBasedGenerator
-import polygonalareas.{Point, Polygon, SolutionManager}
-import polygonalareas.puzzleSizes
+import polygonalareas._
 
 /**
   * Created by Jordi on 2-1-2017.
@@ -21,7 +20,7 @@ class LineBasedGeneratorTest extends WordSpec {
         assert(!polygon.isSelfIntersecting)
         assert(polygon.angles.size == polygon.size)
       }
-      val sorted = pols.toIndexedSeq.map(seq => Polygon(seq.toArray)).sortBy(_.doubleSurface)
+      val sorted = pols.toIndexedSeq.sortBy(doubleSurface(_))
       SolutionManager.addSolution(sorted.head)
       SolutionManager.addSolution(sorted.last)
     }
@@ -37,7 +36,7 @@ class LineBasedGeneratorTest extends WordSpec {
       //          assert(!polygon.isSelfIntersecting  )
       //          assert(polygon.angles.size == polygon.size)
       //        }
-      val sorted = pols.toIndexedSeq.map(seq => Polygon(seq.toArray)).sortBy(_.doubleSurface)
+      val sorted = pols.toIndexedSeq.sortBy(doubleSurface(_))
       SolutionManager.addSolution(sorted.head)
       SolutionManager.addSolution(sorted.last)
       SolutionManager.saveToFile()
@@ -54,7 +53,7 @@ class LineBasedGeneratorTest extends WordSpec {
       //          assert(!polygon.isSelfIntersecting  )
       //          assert(polygon.angles.size == polygon.size)
       //        }
-      for (p <- pols) SolutionManager.addSolution(Polygon(p.toArray))
+      for (p <- pols) SolutionManager.addSolution(p)
       SolutionManager.saveToFile()
     }
 

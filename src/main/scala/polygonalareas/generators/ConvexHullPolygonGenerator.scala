@@ -11,7 +11,7 @@ class ConvexHullPolygonGenerator(n: Int, seed: Int = Random.nextInt()) {
   val random = new Random(seed)
 
   def generatePolygons: Set[IndexedSeq[Point]] = {
-    val points = PointGenerator.generateRandomPoints(n, random.nextInt())
+    val points = PointGenerator.generateRandomPoints(n, random.nextInt())()
 
     val (convexHull, rest) = ConvexHullGenerator.getConvexHullFromSortedPoints(points)
     //    println(s"phase 1: $convexHull - $rest")
@@ -31,7 +31,7 @@ class ConvexHullPolygonGenerator(n: Int, seed: Int = Random.nextInt()) {
   }
 
   def generatePolygons2: Set[IndexedSeq[Point]] = {
-    val points = PointGenerator.generateRandomPoints(n, random.nextInt())
+    val points = PointGenerator.generateRandomPoints(n, random.nextInt())()
     generatePolygonsWithPoints(points)
   }
 

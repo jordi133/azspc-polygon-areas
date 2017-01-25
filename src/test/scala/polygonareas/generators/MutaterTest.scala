@@ -34,24 +34,11 @@ class MutaterTest extends WordSpec {
     }
   }
 
-//  "mutateRandomPoints" should {
-//    "mutate a seq of points" in {
-//      val points = Seq(Point(1, 1), Point(2, 2), Point(3, 3))
-//      val mutations = Mutater.mutateRandomPoints(points, 2).toSeq
-//      val m1 = Seq(Point(1, 1), Point(2, 2), Point(3, 3))
-//      val m2 = Seq(Point(1, 1), Point(2, 3), Point(3, 2))
-//      val m3 = Seq(Point(1, 1), Point(3, 2), Point(2, 3))
-//      val m4 = Seq(Point(1, 1), Point(3, 3), Point(2, 2))
-//      val m6 = Seq(Point(1, 3), Point(2, 2), Point(3, 1))
-//      val m7 = Seq(Point(3, 1), Point(2, 2), Point(1, 3))
-//      val m8 = Seq(Point(3, 3), Point(2, 2), Point(1, 1))
-//      val m10 =Seq(Point(1, 2), Point(2, 1), Point(3, 3))
-//      val m11 =Seq(Point(2, 1), Point(1, 2), Point(3, 3))
-//      val m12 =Seq(Point(2, 2), Point(1, 1), Point(3, 3))
-//      val expected = Set(m1, m2, m3, m4,  m6, m7, m8,  m10, m11, m12)
-//      for (m <- mutations) assert(expected.contains(m))
-//      assert(mutations.size === expected.size)
-//    }
-//  }
+  "swapMutation" should {
+    "swap two indices" in {
+      val points = Vector(1,2,3,4,5,6,7)
+      assert(Mutater.swap(points, 3,4) === Seq(1,2,3,5,4,6,7))
+    }
+  }
 
 }

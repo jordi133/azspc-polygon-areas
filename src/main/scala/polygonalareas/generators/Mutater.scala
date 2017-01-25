@@ -8,6 +8,7 @@ import scala.collection.IndexedSeq
   * Created by Jordi on 18-1-2017.
   */
 object Mutater {
+
   //
   //  def mutateRandomPoints(points: Seq[Point], nrOfPoints: Int)(implicit random: Random): Iterator[Seq[Point]] = {
   //    val indicesToMutate: Seq[Int] = random.shuffle(points.indices.toList).take(nrOfPoints).sorted
@@ -42,4 +43,9 @@ object Mutater {
     case _ => points
   }
 
+  def swap[T](points: IndexedSeq[T], i1: Int, i2: Int): Seq[T] = {
+    val t1 = points(i1)
+    val t2 = points(i2)
+    points.updated(i1, t2).updated(i2, t1)
+  }
 }
