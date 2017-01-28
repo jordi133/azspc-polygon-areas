@@ -44,11 +44,23 @@ class PolygonFixerTest extends WordSpec {
 
       for (n <- puzzleSizes.drop(10)) {
         println(s"n=$n")
-        fixer.evolutionaryFix(PointGenerator.generateDiagonalPoints(n, Math.log(n).toInt), false, popsize = 2500 / n)(actionOnFound)
-        fixer.evolutionaryFix(PointGenerator.generateCircularPoints(n), true, popsize = 2500 / n)(actionOnFound)
+//        fixer.evolutionaryFix(PointGenerator.generateDiagonalPoints(n, Math.log(n).toInt), false, popsize = 2500 / n)(actionOnFound)
+//        fixer.evolutionaryFix(PointGenerator.generateCircularPoints(n), true, popsize = 2500 / n)(actionOnFound)
+        fixer.evolutionaryFix(PointGenerator.generateDiagonalPoints(n, 5 + Math.pow(n, 0.5).toInt), false, popsize = 10)(actionOnFound)
+        fixer.evolutionaryFix(PointGenerator.generateCircularPoints(n), true, popsize = 10)(actionOnFound)
       }
+    }
+    "find best opportunity" in {
+      val fixer = new PolygonFixer(offspringOnGoodPolygon = 20)
+      val actionOnFound: IndexedSeq[Point] => Unit = { points => SolutionManager.addSolution(points) }
 
-
+      for (i <- 1 to 50) {
+        val n = SolutionManager.opportunities.filter(_ < 400).head
+//        val n = SolutionManager.opportunities.head
+        println(s"n=$n")
+        fixer.evolutionaryFix(PointGenerator.generateCrossPoints(n, (1.5 * Math.pow(n, 0.5)).toInt), false, popsize = 10)(actionOnFound)
+        fixer.evolutionaryFix(PointGenerator.generateCircularPoints(n), true, popsize = 10)(actionOnFound)
+      }
     }
   }
 

@@ -12,6 +12,7 @@ import scala.util.Try
   */
 object SolutionManager {
   val filename = "solutions-polygonfixer.txt"
+  val bestScoresFilename = "best-raw-scores.txt"
 
   var polygons: Map[Int, (Option[Seq[Point]], Option[Seq[Point]])] = {
     var result = Map.empty[Int, (Option[Seq[Point]], Option[Seq[Point]])]
@@ -34,10 +35,22 @@ object SolutionManager {
           if (doubleSurface(polygon) < doubleSurface(min)) result = result.updated(polygon.size, (Some(polygon), Some(max)))
       }
     }
-    println(s"Best scores:\n${result.map{case (k,v) => (k, doubleSurface(v._1.get), doubleSurface(v._2.get))}.mkString("\n")}")
+    println(s"Best scores:\n${result.map { case (k, v) => (k, doubleSurface(v._1.get), doubleSurface(v._2.get)) }.mkString("\n")}")
     result
   }
-  
+
+  val bestRawScores: Map[Int, Int] = {
+    val lines = Source.fromFile(bestScoresFilename).getLines()
+    val result = for (size <- puzzleSizes) yield size -> (2 * lines.next().toDouble).toInt
+    result.toMap
+  }
+
+  def opportunities: List[Int] = {
+    val currentScores: Map[Int, Int] = puzzleSizes.map { size => size -> (getMaxSolution(size).map(doubleSurface).getOrElse(Integer.MIN_VALUE) - getMinSolution(size).map(doubleSurface).getOrElse(Integer.MAX_VALUE)) }.toMap
+    val opportunities: List[(Int, Double)] = (puzzleSizes zip currentScores) map { case (size, score) => size -> currentScores(size).toDouble / bestRawScores(size) }
+    println(s"Opportunities:\n${opportunities.sortBy(_._2).mkString("\n")}")
+    opportunities.sortBy(_._2).map(_._1)
+  }
 
   def addSolution(polygon: Seq[Point]) = {
     val p = Polygon(polygon.toArray)
@@ -119,8 +132,8 @@ object SolutionManager {
         val (x, y) = str.splitAt(str.indexOf(','))
         Point(x.filter(c => c.isDigit).toInt, y.filter(c => c.isDigit).toInt)
       }
-//      val result = new Array[Point](coordinates.length)
-//      for (i <- coordinates.indices) result.update(i, coordinates(i))
+      //      val result = new Array[Point](coordinates.length)
+      //      for (i <- coordinates.indices) result.update(i, coordinates(i))
       coordinates.toSeq
     }
   }

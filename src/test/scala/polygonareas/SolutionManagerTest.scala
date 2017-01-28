@@ -22,7 +22,21 @@ class SolutionManagerTest extends WordSpec {
     }
   }
 
-//  "read polygons" should {
+  "bestRawScores" should {
+    "initialize correctly" in {
+      println(SolutionManager.bestRawScores)
+      assert(SolutionManager.bestRawScores.nonEmpty)
+    }
+  }
+
+  "opportunities" should {
+    "initialize correctly" in {
+      println(SolutionManager.opportunities)
+      assert(SolutionManager.opportunities.nonEmpty)
+    }
+  }
+
+    //  "read polygons" should {
 //    "result in read polygons" in {
 //      for ((k,v) <- SolutionManager.readPolygons) println(s"$k, $v")
 //    }

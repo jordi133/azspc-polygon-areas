@@ -96,7 +96,7 @@ object PointGenerator {
       else {
         var potentialPoints = random.shuffle(for {
           x <- getIndexIntervalForRadius filter (i => !acc.exists(p => p.x == i))
-          y <- getIndexIntervalForRadius filter (i => !acc.exists(p => p.y == i))
+          y <- getIndexIntervalForRadius filter (i => !acc.exists(p => p.y == i)) if (x - center) * (y - center) >= 0 || Math.abs(x - y) <= 2 * spread
           point = Point(x, y) if !acc.exists(p => p.x == x || p.y == y)
         } yield point)
 
