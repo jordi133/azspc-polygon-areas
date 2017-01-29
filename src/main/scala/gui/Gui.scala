@@ -6,19 +6,17 @@ package gui
 
 import polygonalareas._
 
-import scala.util.Try
 import scalafx.Includes._
 import scalafx.application.JFXApp
 import scalafx.scene.Scene
 import scalafx.scene.input.MouseEvent
-import scalafx.scene.layout.Pane
 import scalafx.scene.paint.Color._
 import scalafx.scene.shape.{Rectangle, Polygon => FXPolygon}
 import scalafx.stage.Screen
 
 object Gui extends JFXApp {
 
-  var selectedSize = 0
+  var selectedSize = 22
 
 
   var polygonScene = new Scene {
@@ -29,7 +27,7 @@ object Gui extends JFXApp {
       height = 100
       fill <== when(hover) choose Green otherwise Red
     }
-    onMouseClicked = {_: MouseEvent =>
+    onMouseClicked = { _: MouseEvent =>
       selectedSize = (selectedSize + 1) % puzzleSizes.length
       refreshPolygonOfSize(selectedSize)
     }
@@ -39,10 +37,10 @@ object Gui extends JFXApp {
   val bounds = screen.visualBounds
 
   stage = new JFXApp.PrimaryStage {
-//    x = bounds.minX
-//    y = bounds.minY
-//    width = bounds.width
-//    height = bounds.height
+    //    x = bounds.minX
+    //    y = bounds.minY
+    //    width = bounds.width
+    //    height = bounds.height
     title.value = "Hello Stage"
     scene = polygonScene
   }
@@ -54,20 +52,22 @@ object Gui extends JFXApp {
 
   def refreshPolygonOfSize(i: Int): Unit = {
     val pointsLeft = SolutionManager.getMinSolution(puzzleSizes(selectedSize)).get
-    val pointsRight = SolutionManager.getMinSolution(puzzleSizes(selectedSize)).get
-    val scale = pointsLeft.size / 2 * Math.min(stage.getWidth, stage.getHeight)
+    val pointsRight = SolutionManager.getMaxSolution(puzzleSizes(selectedSize)).get
+    val scale = Math.min(0.5 * polygonScene.getWidth, polygonScene.getHeight) / pointsLeft.size
+    val offset = Math.min(0.5 * polygonScene.getWidth, polygonScene.getHeight)
     def polygonPoints(points: Seq[Point], left: Boolean): Seq[Double] =
-      if (left) points.flatMap(p => Seq(p.x / scale, p.y / scale))
-      else points.flatMap(p => Seq(bounds.width / 2 + p.x / scale, p.y / scale))
+      if (left) points.flatMap(p => Seq(p.x.toDouble * scale, p.y.toDouble * scale))
+      else points.flatMap(p => Seq(offset + p.x * scale, p.y * scale))
 
     val left = FXPolygon(polygonPoints(pointsLeft, left = true): _*)
     val right = FXPolygon(polygonPoints(pointsRight, left = false): _*)
-println(s"refreshing polygons")
+    println(s"refreshing polygons")
+    println(s"scale=$scale, pointsLeft=$pointsLeft")
+    println(s"left=${polygonPoints(pointsLeft, left = true)}")
     polygonScene.content.clear()
     left.fill = Black
     right.fill = Black
-    polygonScene.content.add(left)
-    polygonScene.content.add(right)
+    polygonScene.content = Seq(left, right)
   }
 
   refreshPolygonOfSize(selectedSize)

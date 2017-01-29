@@ -52,10 +52,28 @@ object SolutionManager {
     opportunities.sortBy(_._2).map(_._1)
   }
 
+  def addSolution2(polygon: Seq[Point]) = {
+    val size = polygon.size
+    getMaxSolution(size) match {
+      case Some(max) if doubleSurface(max) < doubleSurface(polygon) =>
+        polygons = polygons.updated(size, (getMinSolution(size), Some(polygon)))
+        println(s"Updated max solution for size=$size, score improved by raw ${doubleSurface(polygon) - doubleSurface(max)}/2")
+      case _ =>
+    }
+    getMinSolution(size) match {
+      case Some(min) if doubleSurface(min) > doubleSurface(polygon) =>
+        polygons = polygons.updated(size, (Some(polygon), getMaxSolution(size)))
+        println(s"Updated min solution for size=$size, score improved by raw ${doubleSurface(min) - doubleSurface(polygon)}/2")
+      case _ =>
+    }
+  }
+
   def addSolution(polygon: Seq[Point]) = {
     val p = Polygon(polygon.toArray)
     require(p.angles.size == p.size, s"polygon has parallel edges: $polygon")
     require(!p.isSelfIntersecting, s"polygon is self intersecting: $polygon")
+    require(polygon.map(_.x).toSet.size == polygon.size, s"polygon has duplicate x coordinate")
+    require(polygon.map(_.y).toSet.size == polygon.size, s"polygon has duplicate y coordinate")
     polygons.get(polygon.size) match {
       case None =>
         polygons = polygons.updated(polygon.size, (Some(polygon), Some(polygon)))

@@ -22,6 +22,19 @@ class MutaterTest extends WordSpec {
     }
   }
 
+  "reorder" should {
+    "work correctly 1" in {
+      val points = Vector(1,2,3,4,5,6,7,8,9,0)
+      assert(Mutater.reorder(points, 0, 4)._1.toVector === Vector(2,3,4,1,5,6,7,8,9,0))
+      assert(Mutater.reorder(points, 0, 4)._2.toVector === Vector(0, 2,3))
+    }
+    "work correctly 2" in {
+      val points = Vector(1,2,3,4,5,6,7,8,9,0)
+      assert(Mutater.reorder(points, 4, 0)._1.toVector === Vector(5,1,2,3,4,6,7,8,9,0))
+      assert(Mutater.reorder(points, 4, 0)._2.toSet=== Set(0,9,4))
+    }
+  }
+
   "generateMutations" should {
     "generate an iterator for all mutations" in {
       val points = Seq(Point(1, 1), Point(2, 2), Point(3, 3))

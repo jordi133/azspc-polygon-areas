@@ -1,6 +1,6 @@
 package polygonalareas.generators
 
-import polygonalareas.Point
+import polygonalareas.{LineSegment, Point, Vector2D}
 
 import scala.util.Random
 
@@ -8,6 +8,7 @@ import scala.util.Random
   * Created by Jordi on 23-12-2016.
   */
 object PointGenerator {
+  val random = new Random()
 
   def generateRandomPoints(n: Int, seed: Int = Random.nextInt()): () => IndexedSeq[Point] = { () =>
     val random = new Random(seed)
@@ -21,8 +22,8 @@ object PointGenerator {
     result
   }
 
-  def generateCrossPoints(n: Int, radiusStep: Int = 4, seed: Int = Random.nextInt()): () => IndexedSeq[Point] = { () =>
-    val random = new Random(seed)
+  def generateCrossPoints(radiusStep: Int = 4, seed: Option[Int] = None)(n: Int): () => IndexedSeq[Point] = { () =>
+    val random = new Random(seed.getOrElse(this.random.nextInt()))
     val center = n / 2
     def generatePoints(radius: Int, acc: Set[Point]): IndexedSeq[Point] = {
       if (acc.size == n) {
@@ -48,8 +49,8 @@ object PointGenerator {
     generatePoints(1, Set.empty)
   }
 
-  def generateCircularPoints(n: Int, seed: Int = Random.nextInt()): () => IndexedSeq[Point] = { () =>
-    val random = new Random(seed)
+  def generateCircularPoints(seed: Option[Int] = None)(n: Int): () => IndexedSeq[Point] = { () =>
+    val random = new Random(seed.getOrElse(this.random.nextInt()))
     val center = n / 2
     val radiusStep = 4
     def generatePoints(radius: Int, acc: Set[Point]): IndexedSeq[Point] = {
@@ -81,8 +82,8 @@ object PointGenerator {
     generatePoints(1, Set.empty)
   }
 
-  def generateDiagonalPoints(n: Int, spread: Int = 4, seed: Int = Random.nextInt()): () => IndexedSeq[Point] = { () =>
-    val random = new Random(seed)
+  def generateDiagonalPoints(spread: Int = 4, seed: Option[Int] = None)(n: Int): () => IndexedSeq[Point] = { () =>
+    val random = new Random(seed.getOrElse(this.random.nextInt()))
     val center = n / 2
     def generatePoints(blockCenter: Int, acc: Set[Point]): IndexedSeq[Point] = {
       def getIndexIntervalForRadius: Seq[Int] = {
@@ -111,5 +112,41 @@ object PointGenerator {
     }
 
     generatePoints(1, Set.empty)
+  }
+
+  def generateDoubleDiagonalPoints(spread: Int = 4, seed: Option[Int] = None)(n: Int): () => IndexedSeq[Point] = { () =>
+    val random = new Random(seed.getOrElse(this.random.nextInt()))
+
+    val partOne = generateDiagonalPoints(spread, Some(random.nextInt()))(n / 2)()
+    val partTwo = generateDiagonalPoints(spread, Some(random.nextInt()))(n - n/2)() map {p => Point(p.x + n/2, n - p.y)}
+
+    partOne ++ partTwo
+  }
+
+
+
+  def createPolygon(points: Set[Point]): IndexedSeq[Point] = {
+    val l = points.minBy(_.x)
+    val r = points.maxBy(_.x)
+    var leftPoints = Set.empty[Point]
+    var rightPoints = Set.empty[Point]
+    for (p <- points - l - r) {
+      val sign = Math.signum((r.x - l.x) * (p.y - l.y) - (r.y - l.y) * (p.x - l.x))
+      if (sign <= 0) leftPoints += p
+      else rightPoints += p
+    }
+
+    val leftPointsSorted = leftPoints.toIndexedSeq.sortBy(_.x)
+    val rightPointsSorted = rightPoints.toIndexedSeq.sortBy(_.x)
+
+    val pointsArray = new Array[Point](points.size)
+    pointsArray.update(0, l)
+    pointsArray.update(leftPointsSorted.size + 1, r)
+    for (i <- leftPointsSorted.indices)
+      pointsArray.update(1 + i, leftPointsSorted(i))
+    for (i <- rightPointsSorted.indices)
+      pointsArray.update(points.size - i - 1, rightPointsSorted(i))
+
+    pointsArray.toIndexedSeq
   }
 }

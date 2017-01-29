@@ -29,6 +29,8 @@ package object polygonalareas {
       * @return the difference between this point and the other point
       */
     def -(other: Point): Vector2D = Vector2D(other.x - x, other.y - y)
+
+    def +(v: Vector2D): Point = Point(x + v.x, y + v.y)
   }
   /**
     * A vector consists of two integer components, representing a direction in a 2D grid
