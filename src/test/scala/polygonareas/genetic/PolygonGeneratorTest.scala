@@ -11,14 +11,14 @@ import polygonalareas.{Point, Polygon}
 class PolygonGeneratorTest extends WordSpec{
 
   "putPointsAt12and21" should {
-    "work" in {
-      val points = Vector(Point(1,1), Point(2,3), Point(4,5),Point(4,2),Point(3,4))
-      val result = PolygonGenerator.putPointsAt12and21(points)
-      assert(result(0) === Point(1,2))
-      assert(result(1) === Point(2,1))
-      assert(result.map(_.x).toSet === points.map(_.x).toSet)
-      assert(result.map(_.y).toSet === points.map(_.y).toSet)
-    }
+//    "work" in {
+//      val points = Vector(Point(1,1), Point(2,3), Point(4,5),Point(4,2),Point(3,4))
+//      val result = PolygonGenerator.putPointsAt12and21(points)
+//      assert(result(0) === Point(1,2))
+//      assert(result(1) === Point(2,1))
+//      assert(result.map(_.x).toSet === points.map(_.x).toSet)
+//      assert(result.map(_.y).toSet === points.map(_.y).toSet)
+//    }
 
     "test" in {
       val n = 10

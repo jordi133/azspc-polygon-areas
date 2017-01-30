@@ -81,27 +81,35 @@ class PolygonFixerTest extends WordSpec {
       }
     }
 
-    "test new mutations" in {
-      val fixer = new PolygonFixer(offspringOnGoodPolygon = 20)
-      val actionOnFound: IndexedSeq[Point] => Unit = { points => assert(!Polygon(points.toArray).isSelfIntersecting) }
-//      val actionOnFound: IndexedSeq[Point] => Unit = { points => SolutionManager.addSolution(points) }
+    "find best based on generated polygons" in {
+      val fixer = new PolygonFixer(offspringOnGoodPolygon = 10)
+      //      val actionOnFound: IndexedSeq[Point] => Unit = { points => assert(!Polygon(points.toArray).isSelfIntersecting) }
+      val actionOnFound: IndexedSeq[Point] => Unit = { points => SolutionManager.addSolution(points) }
 
-      for (i <- 1 to 5) {
-                        val n = SolutionManager.opportunities.filter(_ < 100).head
-        //                val n = SolutionManager.opportunities.head
-//        val n = SolutionManager.opportunities(Math.min(getIndex(Random.nextDouble()), puzzleSizes.length - 1))
+      for (i <- 1 to 100) {
+        //        val n = SolutionManager.opportunities.filter(_ < 100).head
+        //        val n = puzzleSizes(i)
+//        val n = SolutionManager.opportunities.head
+                val n = SolutionManager.opportunities(Math.min(getIndex(Random.nextDouble()), puzzleSizes.length - 1))
         println(s"n=$n")
         //        fixer.optimizeWithFamiliesFromPoints(pointGenerator(n), false)(actionOnFound)
         //        fixer.optimizeWithFamiliesFromPoints(pointGenerator(n), true)(actionOnFound)
         //        fixer.optimizeWithFamiliesFromPoints(PointGenerator.generateDiagonalPoints(n, (1.5 * Math.pow(n, 0.5)).toInt), false)(actionOnFound)
-        def polygonGenerator = PolygonGenerator.generatePolygonInSquare(n)(PointGenerator.generateDiagonalPoints((1.5 * Math.pow(n, 0.5)).toInt))
-        fixer.optimizeWithFamiliesFromPolygon(polygonGenerator,
+        def polygonGeneratorMax = PolygonGenerator.generatePolygonInSquare(n)(PointGenerator.generateDiagonalPoints((1.5 * Math.pow(n, 0.5)).toInt))
+        def polygonGeneratorMin = () => PolygonGenerator.createPolygon(pointGenerator(n)().toSet)
+        fixer.optimizeWithFamiliesFromPolygon(polygonGeneratorMax,
           maximize = true,
           nrOfFamilies = 1,
           familyRevitalizations = 0,
+          maxRoundsWithoutImprovement = 100,
+          familySize = 10)(actionOnFound)
+        fixer.optimizeWithFamiliesFromPolygon(polygonGeneratorMin,
+          maximize = false,
+          nrOfFamilies = 1,
+          familyRevitalizations = 0,
+          maxRoundsWithoutImprovement = 100,
           familySize = 10)(actionOnFound)
       }
     }
   }
-
 }

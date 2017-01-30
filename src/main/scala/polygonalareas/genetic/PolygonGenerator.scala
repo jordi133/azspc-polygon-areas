@@ -23,20 +23,20 @@ object PolygonGenerator {
     result
   }
 
-  def putPointsAt12and21(points: IndexedSeq[Point]): IndexedSeq[Point] = {
-    val i1 = points.indexWhere(_.x == 1)
-    val i2 = points.indexWhere(_.y == 1)
-    // swap so that i1 is at index 0 and i2 is at index 1
-    val swap1 = points.updated(0, points(i1)).updated(i1, points(0))
-    val swap2 = swap1.updated(1, points(i2)).updated(i2, points(1))
-
-    // swap other coordinates so that at index 0 there is (1,2) and at index 1 (2,1)
-    val i3 = points.indexWhere(_.y == 2)
-    val i4 = points.indexWhere(_.x == 2)
-    val swap3 = swap2.updated(i3, Point(swap2(i3).x, swap2(0).y)).updated(0, Point(1, 2))
-    val swap4 = swap3.updated(i4, Point(swap2(i4).y, swap3(0).x)).updated(1, Point(2, 1))
-    swap4
-  }
+//  def putPointsAt12and21(points: IndexedSeq[Point]): IndexedSeq[Point] = {
+//    val i1 = points.indexWhere(_.x == 1)
+//    val i2 = points.indexWhere(_.y == 1)
+//    // swap so that i1 is at index 0 and i2 is at index 1
+//    val swap1 = points.updated(0, points(i1)).updated(i1, points(0))
+//    val swap2 = swap1.updated(1, points(i2)).updated(i2, points(1))
+//
+//    // swap other coordinates so that at index 0 there is (1,2) and at index 1 (2,1)
+//    val i3 = points.indexWhere(_.y == 2)
+//    val i4 = points.indexWhere(_.x == 2)
+//    val swap3 = swap2.updated(i3, Point(swap2(i3).x, swap2(0).y)).updated(0, Point(1, 2))
+//    val swap4 = swap3.updated(i4, Point(swap2(i4).y, swap3(0).x)).updated(1, Point(2, 1))
+//    swap4
+//  }
 
   def generateDiagonalPointsInSquare(spread: Int = 4, seed: Option[Int] = None)(n: Int): () => IndexedSeq[Point] = { () =>
     def putPointsAt12and21(points: IndexedSeq[Point]): IndexedSeq[Point] = {

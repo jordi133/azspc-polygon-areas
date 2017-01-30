@@ -18,7 +18,6 @@ object Gui extends JFXApp {
 
   var selectedSize = 22
 
-
   var polygonScene = new Scene {
     content = new Rectangle {
       x = 25
@@ -30,6 +29,7 @@ object Gui extends JFXApp {
     onMouseClicked = { _: MouseEvent =>
       selectedSize = (selectedSize + 1) % puzzleSizes.length
       refreshPolygonOfSize(selectedSize)
+      println(s"Showing polygons for n=${puzzleSizes(selectedSize)}")
     }
   }
 
@@ -37,11 +37,7 @@ object Gui extends JFXApp {
   val bounds = screen.visualBounds
 
   stage = new JFXApp.PrimaryStage {
-    //    x = bounds.minX
-    //    y = bounds.minY
-    //    width = bounds.width
-    //    height = bounds.height
-    title.value = "Hello Stage"
+    title.value = "Polygons"
     scene = polygonScene
   }
 
@@ -61,9 +57,6 @@ object Gui extends JFXApp {
 
     val left = FXPolygon(polygonPoints(pointsLeft, left = true): _*)
     val right = FXPolygon(polygonPoints(pointsRight, left = false): _*)
-    println(s"refreshing polygons")
-    println(s"scale=$scale, pointsLeft=$pointsLeft")
-    println(s"left=${polygonPoints(pointsLeft, left = true)}")
     polygonScene.content.clear()
     left.fill = Black
     right.fill = Black

@@ -50,6 +50,7 @@ object PointGenerator {
   }
 
   def generateCircularPoints(seed: Option[Int] = None)(n: Int): () => IndexedSeq[Point] = { () =>
+//    println(s"generateCircularPoints")
     val random = new Random(seed.getOrElse(this.random.nextInt()))
     val center = n / 2
     val radiusStep = 4
@@ -83,24 +84,24 @@ object PointGenerator {
   }
 
   def generateDiagonalPoints(spread: Int = 4, seed: Option[Int] = None)(n: Int): () => IndexedSeq[Point] = { () =>
+//    println(s"generateDiagonalPoints")
     val random = new Random(seed.getOrElse(this.random.nextInt()))
     val center = n / 2
     def generatePoints(blockCenter: Int, acc: Set[Point]): IndexedSeq[Point] = {
       def getIndexIntervalForRadius: Seq[Int] = {
-        val interval1 = Math.max(1, blockCenter - spread) to Math.min(blockCenter + spread, center)
-        val interval2 = Math.max((n - blockCenter) - spread, center) to Math.min((n - blockCenter) + spread, n)
-        interval1 ++ interval2
+        val interval1 = Math.max(1, blockCenter - spread) to Math.min(blockCenter + spread, n)
+//        val interval2 = Math.max((n - blockCenter) - spread, center) to Math.min((n - blockCenter) + spread, n)
+        interval1 //++ interval2
       }
       if (acc.size == n) {
         acc.toIndexedSeq
-      }
-      else {
+      } else {
         var potentialPoints = random.shuffle(for {
           x <- getIndexIntervalForRadius filter (i => !acc.exists(p => p.x == i))
           y <- getIndexIntervalForRadius filter (i => !acc.exists(p => p.y == i)) if (x - center) * (y - center) >= 0 || Math.abs(x - y) <= 2 * spread
           point = Point(x, y) if !acc.exists(p => p.x == x || p.y == y)
         } yield point)
-
+//        println(s"blockCenter: $blockCenter, acc: $acc, potentialPoints: $potentialPoints")
         var newPoints = Set.empty[Point]
         while (potentialPoints.nonEmpty) {
           val p = potentialPoints.iterator.next()
@@ -111,18 +112,23 @@ object PointGenerator {
       }
     }
 
-    generatePoints(1, Set.empty)
+    val result = generatePoints(1, Set.empty)
+    require(result.map(_.x).distinct.size == n, s"duplicate x coordinate in $result")
+    require(result.map(_.y).distinct.size == n, s"duplicate y coordinate in $result")
+    result
   }
 
   def generateDoubleDiagonalPoints(spread: Int = 4, seed: Option[Int] = None)(n: Int): () => IndexedSeq[Point] = { () =>
+//    println(s"generateDoubleDiagonalPoints")
     val random = new Random(seed.getOrElse(this.random.nextInt()))
 
     val partOne = generateDiagonalPoints(spread, Some(random.nextInt()))(n / 2)()
-    val partTwo = generateDiagonalPoints(spread, Some(random.nextInt()))(n - n/2)() map {p => Point(p.x + n/2, n - p.y)}
-
-    partOne ++ partTwo
+    val partTwo = generateDiagonalPoints(spread, Some(random.nextInt()))(n - n / 2)() map { p => Point(p.x + n / 2, n - p.y + 1) }
+    val result = partOne ++ partTwo
+    require(result.map(_.x).distinct.size == n, s"duplicate x coordinate in $result")
+    require(result.map(_.y).distinct.size == n, s"duplicate y coordinate in $result")
+    result
   }
-
 
 
   def createPolygon(points: Set[Point]): IndexedSeq[Point] = {

@@ -49,6 +49,7 @@ object SolutionManager {
     val currentScores: Map[Int, Int] = puzzleSizes.map { size => size -> (getMaxSolution(size).map(doubleSurface).getOrElse(Integer.MIN_VALUE) - getMinSolution(size).map(doubleSurface).getOrElse(Integer.MAX_VALUE)) }.toMap
     val opportunities: List[(Int, Double)] = (puzzleSizes zip currentScores) map { case (size, score) => size -> currentScores(size).toDouble / bestRawScores(size) }
     println(s"Opportunities:\n${opportunities.sortBy(_._2).mkString("\n")}")
+    println(s"Current score: ${opportunities.map(_._2).sum}")
     opportunities.sortBy(_._2).map(_._1)
   }
 

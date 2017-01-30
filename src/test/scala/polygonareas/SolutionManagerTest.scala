@@ -35,11 +35,4 @@ class SolutionManagerTest extends WordSpec {
       assert(SolutionManager.opportunities.nonEmpty)
     }
   }
-
-    //  "read polygons" should {
-//    "result in read polygons" in {
-//      for ((k,v) <- SolutionManager.readPolygons) println(s"$k, $v")
-//    }
-//  }
-
 }

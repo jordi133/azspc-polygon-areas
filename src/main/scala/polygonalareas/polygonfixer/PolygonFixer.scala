@@ -33,10 +33,13 @@ class PolygonFixer(seed: Int = Random.nextInt(), offspringOnGoodPolygon: Int = 4
       case Some(polygon) => doubleSurface(polygon)
       case _ => -1
     }
+//    var done = false
 
-    while (familiesDied <= familyRevitalizations) {
+    while (families.values.flatten.nonEmpty) {
+//    while (familiesDied <= familyRevitalizations || families.values.flatten.nonEmpty) {
+//    while (familiesDied <= familyRevitalizations) {
       count += 1
-      val newPop = families map { case (index, pop) => (index, familySelection(pop.flatMap(nextGen(_)(actionOnFound)))) }
+      val newPop = families map { case (index, pop) => (index, familySelection(pop.par.flatMap(nextGen(_)(actionOnFound)).seq)) }
 
       // adjust families so that the new generation is represented as much as possible. If size of new generation is smaller than
       // max family size, then fill up with some of the previous generation
@@ -72,12 +75,17 @@ class PolygonFixer(seed: Int = Random.nextInt(), offspringOnGoodPolygon: Int = 4
 
       for (index <- families.keys) {
         if (familyImprovements(index) >= maxRoundsWithoutImprovement || families(index).isEmpty) {
-          val newPolygon = Pol(polygonGenerator())
-          families = families.updated(index, Set(newPolygon))
-          familyImprovements = familyImprovements.updated(index, 0)
-          bestPerFamily = bestPerFamily.updated(index, doubleSurface(newPolygon.points))
+          println(s"family died")
           familiesDied += 1
-          println(s"Revitalized family, ${familyRevitalizations - familiesDied} left")
+          if (familyRevitalizations > familiesDied) {
+            val newPolygon = Pol(polygonGenerator())
+            families = families.updated(index, Set(newPolygon))
+            familyImprovements = familyImprovements.updated(index, 0)
+            bestPerFamily = bestPerFamily.updated(index, doubleSurface(newPolygon.points))
+            println(s"Revitalized family, ${familyRevitalizations - familiesDied} left")
+          } else {
+            families = families.filter(_._1 != index)
+          }
         }
       }
     }
@@ -257,8 +265,8 @@ class PolygonFixer(seed: Int = Random.nextInt(), offspringOnGoodPolygon: Int = 4
       newPolygon <- Mutater.mutateGivenIndices(pol.points, indices) if !hasSelfIntersectingEdgesOnIndices(newPolygon.toIndexedSeq, indices)
     } yield newPolygon.toIndexedSeq
 
-    (newPolygonsFromPointMutations).map(Pol(_)).toSet
-//        (newPolygonsFromReordering ++ newPolygonsFromPointMutations).map(Pol(_)).toSet
+//    (newPolygonsFromPointMutations).map(Pol(_)).toSet
+        (newPolygonsFromReordering ++ newPolygonsFromPointMutations).map(Pol(_)).toSet
   }
 
   def getAngleToIndexMap(points: IndexedSeq[Point]): Map[Vector2D, Seq[Int]] = {
