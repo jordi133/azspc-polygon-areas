@@ -23,7 +23,7 @@ class PolygonGeneratorTest extends WordSpec{
     "test" in {
       val n = 10
       for (i <- 1 to 100) {
-        val polygon = PolygonGenerator.generatePolygonInSquare(n)(PointGenerator.generateDoubleDiagonalPoints((2 * Math.pow(n, 0.5)).toInt,seed = Some(1)))()
+        val polygon = PolygonGenerator.generatePolygonInSquare(PointGenerator.generateDoubleDiagonalPoints((2 * Math.pow(n, 0.5)).toInt,seed = Some(1)), PolygonGenerator.createPolygon)(n)()
         println(polygon)
         assert(!Polygon(polygon.toArray).isSelfIntersecting)
       }
@@ -34,7 +34,7 @@ class PolygonGeneratorTest extends WordSpec{
     "give unique coordinates" in {
       val n = 100
       for (i <- 1 to 100) {
-        val polygon = PolygonGenerator.generatePolygonInSquare(n)(PointGenerator.generateDiagonalPoints((2 * Math.pow(n, 0.5)).toInt,seed = Some(1)))()
+        val polygon = PolygonGenerator.generatePolygonInSquare(PointGenerator.generateDiagonalPoints((2 * Math.pow(n, 0.5)).toInt,seed = Some(1)), PolygonGenerator.generateDiagonalPolygon)(n)()
         println(polygon)
         println((1 to 100).filter(!polygon.map(_.x).contains(_)))
         assert(polygon.map(_.x).distinct.size === n)

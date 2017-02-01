@@ -18,11 +18,11 @@ class PolygonFixer(seed: Int = Random.nextInt(), offspringOnGoodPolygon: Int = 4
                                      (actionOnFound: IndexedSeq[Point] => Unit) = {
 
     val sortSign = if (maximize) 1 else -1
-    var families: Map[Int, Set[Pol]] = (0 to nrOfFamilies map (i => (i, Set(Pol(polygonGenerator()))))).toMap
+    var families: Map[Int, Set[Pol]] = (0 until nrOfFamilies map (i => (i, Set(Pol(polygonGenerator()))))).toMap
     val n = families(0).iterator.next().points.size
     var familiesDied = 0
-    var familyImprovements: Map[Int, Int] = ((0 to nrOfFamilies) map (_ -> 0)).toMap
-    var bestPerFamily: Map[Int, Int] = ((0 to nrOfFamilies) map (i => i -> -sortSign * n * n)).toMap
+    var familyImprovements: Map[Int, Int] = ((0 until nrOfFamilies) map (_ -> 0)).toMap
+    var bestPerFamily: Map[Int, Int] = ((0 until nrOfFamilies) map (i => i -> -sortSign * n * n)).toMap
 
     def familySelection(pop: Set[Pol]): IndexedSeq[Pol] =
       pop.toIndexedSeq.sortBy(pol => (-pol.angles.values.size, -sortSign * doubleSurface(pol.points))).take(familySize)
@@ -33,11 +33,8 @@ class PolygonFixer(seed: Int = Random.nextInt(), offspringOnGoodPolygon: Int = 4
       case Some(polygon) => doubleSurface(polygon)
       case _ => -1
     }
-//    var done = false
 
     while (families.values.flatten.nonEmpty) {
-//    while (familiesDied <= familyRevitalizations || families.values.flatten.nonEmpty) {
-//    while (familiesDied <= familyRevitalizations) {
       count += 1
       val newPop = families map { case (index, pop) => (index, familySelection(pop.par.flatMap(nextGen(_)(actionOnFound)).seq)) }
 
@@ -67,7 +64,7 @@ class PolygonFixer(seed: Int = Random.nextInt(), offspringOnGoodPolygon: Int = 4
           actionOnFound(newBestPolygon.points)
           bestScore = newBestSurface
         }
-        println(s"n: $n ${if (maximize) "max" else "min"}, fam rev left: ${familyRevitalizations - familiesDied}, round $count: newPop size = ${newPop.values.flatten.size}, bestScore = $bestScore, bestEver: $bestEver, diff with best ever: ${Math.abs(bestScore - bestEver)}")
+        println(s"n: $n ${if (maximize) "max" else "min"}, families alive: ${families.size}, fam rev left: ${Math.max(0, familyRevitalizations - familiesDied)}, round $count: newPop size = ${newPop.values.flatten.size}, bestScore = $bestScore, bestEver: $bestEver, diff with best ever: ${Math.abs(bestScore - bestEver)}")
       } else if (families.values.flatten.nonEmpty) {
         val parallelEdges = families.values.flatten.map(n - _.angles.values.size)
         println(s"n: $n ${if (maximize) "max" else "min"}, round $count: newPop size = ${newPop.size}, min parallel edges: ${parallelEdges.min}")
@@ -75,7 +72,6 @@ class PolygonFixer(seed: Int = Random.nextInt(), offspringOnGoodPolygon: Int = 4
 
       for (index <- families.keys) {
         if (familyImprovements(index) >= maxRoundsWithoutImprovement || families(index).isEmpty) {
-          println(s"family died")
           familiesDied += 1
           if (familyRevitalizations > familiesDied) {
             val newPolygon = Pol(polygonGenerator())
@@ -87,126 +83,6 @@ class PolygonFixer(seed: Int = Random.nextInt(), offspringOnGoodPolygon: Int = 4
             families = families.filter(_._1 != index)
           }
         }
-      }
-    }
-  }
-
-
-  def optimizeWithFamiliesFromPoints(pointGenerator: () => IndexedSeq[Point], maximize: Boolean, familyRevitalizations: Int = 10,
-                                     familySize: Int = 10, nrOfFamilies: Int = 5, maxRoundsWithoutImprovement: Int = 25)
-                                    (actionOnFound: IndexedSeq[Point] => Unit) = {
-
-    val sortSign = if (maximize) 1 else -1
-    var families: Map[Int, Set[Pol]] = (0 to nrOfFamilies map (i => (i, Set(Pol(createPolygon(pointGenerator().toSet)))))).toMap
-    var familiesDied = 0
-    var familyImprovements: Map[Int, Int] = ((0 to nrOfFamilies) map (_ -> 0)).toMap
-    var bestPerFamily: Map[Int, Int] = ((0 to nrOfFamilies) map (i => i -> doubleSurface(families(i).iterator.next().points))).toMap
-
-    def familySelection(pop: Set[Pol]): IndexedSeq[Pol] =
-      pop.toIndexedSeq.sortBy(pol => (-pol.angles.values.size, -sortSign * doubleSurface(pol.points))).take(familySize)
-
-    var roundsWithoutImprovement = 0
-    var bestScore = -1
-    var count = 0
-    val n = families(0).iterator.next().points.size
-    val bestEver = (if (maximize) SolutionManager.getMaxSolution(n) else SolutionManager.getMinSolution(n)) match {
-      case Some(polygon) => doubleSurface(polygon)
-      case _ => -1
-    }
-
-    while (familiesDied < familyRevitalizations) {
-      count += 1
-      val newPop = families map { case (index, pop) => (index, familySelection(pop.flatMap(nextGen(_)(actionOnFound)))) }
-      families = newPop.map { case (index, pop) => (index, pop.toSet) }
-
-      val validPolygonsPerFamily = newPop.map { case (index, v) => index -> v.filter(pol => pol.angles.size == n) }.filter { case (k, v) => v.nonEmpty }
-      // Fix best per family and rounds without improvement
-      for ((index, pop) <- families if validPolygonsPerFamily.get(index).nonEmpty) {
-        val best = doubleSurface(newPop(index).head.points)
-        if ((best - bestPerFamily(index)) * sortSign > 0) {
-          // improvement
-          bestPerFamily = bestPerFamily.updated(index, best)
-          familyImprovements = familyImprovements.updated(index, 0)
-        } else {
-          familyImprovements = familyImprovements.updated(index, familyImprovements(index) + 1)
-        }
-      }
-
-      val validPolygons = validPolygonsPerFamily.values.flatten
-      if (validPolygons.nonEmpty) {
-        val newBestPolygon = validPolygonsPerFamily.values.flatten.minBy { pol => -sortSign * doubleSurface(pol.points) }
-        val newBestSurface = doubleSurface(newBestPolygon.points)
-        val improvement = if (bestScore == -1) newBestSurface else (newBestSurface - bestScore) * sortSign
-        if (improvement > 0) {
-          roundsWithoutImprovement = 0
-          bestScore = newBestSurface
-          actionOnFound(newBestPolygon.points)
-        } else {
-          roundsWithoutImprovement += 1
-        }
-        println(s"n: $n ${if (maximize) "max" else "min"}, fam rev left: ${familyRevitalizations - familiesDied}, round $count: newPop size = ${newPop.size}, bestScore = $bestScore, bestEver: $bestEver, diff with best ever: ${Math.abs(bestScore - bestEver)}")
-      } else if (families.values.flatten.nonEmpty) {
-        val parallelEdges = families.values.flatten.map(n - _.angles.values.size)
-        println(s"n: $n ${if (maximize) "max" else "min"}, round $count: newPop size = ${newPop.size}, min parallel edges: ${parallelEdges.min}")
-      }
-
-      for (index <- families.keys) {
-        if (familyImprovements(index) >= maxRoundsWithoutImprovement) {
-          val newPolygon = Pol(createPolygon(pointGenerator().toSet))
-          families = families.updated(index, Set(newPolygon))
-          familyImprovements = familyImprovements.updated(index, 0)
-          bestPerFamily = bestPerFamily.updated(index, doubleSurface(newPolygon.points))
-          familiesDied += 1
-          println(s"Revitalized family, ${familyRevitalizations - familiesDied} left")
-        }
-      }
-    }
-  }
-
-  //  def evolutionaryFix(initialPoints: IndexedSeq[Point], maximize: Boolean,
-  def evolutionaryFix(pointGenerator: () => IndexedSeq[Point], maximize: Boolean,
-                      popsize: Int = 10, maxRoundsWithoutImprovement: Int = 25)
-                     (actionOnFound: IndexedSeq[Point] => Unit) = {
-    val sortSign = if (maximize) 1 else -1
-    val initialPoints = pointGenerator()
-    var population = Set(Pol(createPolygon(initialPoints.toSet)))
-    //    var population = Set(Pol(createStarPolygon(initialPoints)))
-    var roundsWithoutImprovement = 0
-    var bestScore = -1
-    var count = 0
-    val bestEver = (if (maximize) SolutionManager.getMaxSolution(initialPoints.size) else SolutionManager.getMinSolution(initialPoints.size)) match {
-      case Some(polygon) => doubleSurface(polygon)
-      case _ => -1
-    }
-    while (population.nonEmpty && (bestScore == -1 || roundsWithoutImprovement < maxRoundsWithoutImprovement)) {
-      val newPop = (population.par flatMap { pol => nextGen(pol)(actionOnFound) }).toIndexedSeq
-      val sorted = newPop.sortBy(pol => (-pol.angles.values.size, -sortSign * doubleSurface(pol.points))).take(popsize)
-      count += 1
-
-      val prevGen =
-        if (sorted.size == popsize) {
-          Set.empty
-        } else {
-          population.toSeq.sortBy(pol => (-pol.angles.values.size, -sortSign * doubleSurface(pol.points))).take(popsize - sorted.size)
-        }
-
-      population = sorted.toSet ++ prevGen
-
-      if ((sorted ++ prevGen).head.angles.size == initialPoints.size) {
-        val newBestPolygon = sorted.head
-        val newBestSurface = doubleSurface(newBestPolygon.points)
-        val improvement = if (bestScore == -1) newBestSurface else (newBestSurface - bestScore) * sortSign
-        if (improvement > 0) {
-          roundsWithoutImprovement = 0
-          bestScore = newBestSurface
-          actionOnFound(newBestPolygon.points)
-        } else {
-          roundsWithoutImprovement += 1
-        }
-        println(s"n: ${initialPoints.size} ${if (maximize) "max" else "min"}, round $count: newPop size = ${newPop.size}, bestScore = $bestScore, bestEver: $bestEver, diff with best ever: ${Math.abs(bestScore - bestEver)}")
-      } else {
-        val parallelEdges = population.map(initialPoints.size - _.angles.values.size)
-        println(s"n: ${initialPoints.size} ${if (maximize) "max" else "min"}, round $count: newPop size = ${newPop.size}, min parallel edges: ${parallelEdges.min}")
       }
     }
   }
@@ -257,7 +133,7 @@ class PolygonFixer(seed: Int = Random.nextInt(), offspringOnGoodPolygon: Int = 4
     val newPolygonsFromReordering = for {
       indices <- indicesToHandle
       indicesToSwap = (indices.head, indices(1))
-      (newPolygon , indicesThatChange )= Mutater.reorder(pol.points, indicesToSwap._1, indicesToSwap._2) if !hasSelfIntersectingEdgesOnIndices(newPolygon, indicesThatChange)
+      (newPolygon, indicesThatChange) = Mutater.reorder(pol.points, indicesToSwap._1, indicesToSwap._2) if !hasSelfIntersectingEdgesOnIndices(newPolygon, indicesThatChange)
     } yield newPolygon
 
     val newPolygonsFromPointMutations = for {
@@ -265,8 +141,8 @@ class PolygonFixer(seed: Int = Random.nextInt(), offspringOnGoodPolygon: Int = 4
       newPolygon <- Mutater.mutateGivenIndices(pol.points, indices) if !hasSelfIntersectingEdgesOnIndices(newPolygon.toIndexedSeq, indices)
     } yield newPolygon.toIndexedSeq
 
-//    (newPolygonsFromPointMutations).map(Pol(_)).toSet
-        (newPolygonsFromReordering ++ newPolygonsFromPointMutations).map(Pol(_)).toSet
+    //    (newPolygonsFromPointMutations).map(Pol(_)).toSet
+    (newPolygonsFromReordering ++ newPolygonsFromPointMutations).map(Pol(_)).toSet
   }
 
   def getAngleToIndexMap(points: IndexedSeq[Point]): Map[Vector2D, Seq[Int]] = {

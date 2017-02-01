@@ -47,7 +47,8 @@ object Gui extends JFXApp {
   }
 
   def refreshPolygonOfSize(i: Int): Unit = {
-    val pointsLeft = SolutionManager.getMinSolution(puzzleSizes(selectedSize)).get
+    val pointsLeft = Vector(Point(3, 4), Point(2, 40), Point(1, 46), Point(47, 47), Point(46, 1), Point(20, 2), Point(7, 5), Point(12, 11), Point(11, 6), Point(22, 18), Point(14, 7), Point(23, 19), Point(24, 17), Point(32, 16), Point(33, 27), Point(35, 30), Point(44, 37), Point(40, 3), Point(45, 41), Point(36, 45), Point(42, 44), Point(43, 43), Point(41, 42), Point(25, 39), Point(39, 38), Point(34, 36), Point(38, 35), Point(28, 34), Point(18, 31), Point(37, 33), Point(29, 32), Point(31, 29), Point(30, 28), Point(27, 26), Point(16, 24), Point(4, 25), Point(21, 23), Point(26, 22), Point(17, 21), Point(8, 13), Point(19, 20), Point(15, 15), Point(10, 14), Point(13, 12), Point(5, 10), Point(9, 8), Point(6, 9))
+//    val pointsLeft = SolutionManager.getMinSolution(puzzleSizes(selectedSize)).get
     val pointsRight = SolutionManager.getMaxSolution(puzzleSizes(selectedSize)).get
     val scale = Math.min(0.5 * polygonScene.getWidth, polygonScene.getHeight) / pointsLeft.size
     val offset = Math.min(0.5 * polygonScene.getWidth, polygonScene.getHeight)

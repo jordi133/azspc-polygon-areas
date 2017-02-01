@@ -9,6 +9,10 @@ import scala.collection.IndexedSeq
   */
 class Mutater {
 
+  def pickPointsToMutate(points: Seq[Point]): (Int, Int) = {
+    ???
+  }
+
   def mutateByAdjustingPoints(points: IndexedSeq[Point], indicesToMutate: Seq[Int]): Iterator[Seq[Point]] = {
     val mutations = generateMutations(points, indicesToMutate)
     val resultingPointsIterator = mutations map { mutation => updatedPoints(points, mutation, indicesToMutate) } filter (_ != points)
