@@ -50,7 +50,6 @@ object PointGenerator {
   }
 
   def generateCircularPoints(seed: Option[Int] = None)(n: Int): () => IndexedSeq[Point] = { () =>
-//    println(s"generateCircularPoints")
     val random = new Random(seed.getOrElse(this.random.nextInt()))
     val center = n / 2
     val radiusStep = 4

@@ -1,6 +1,5 @@
 package polygonalareas.genetic
 
-import polygonalareas.generators.PointGenerator
 import polygonalareas.{Point, Vector2D}
 
 import scala.util.Random
@@ -58,50 +57,84 @@ object PolygonGenerator {
     (l +: leftPointsSorted) ++ (r +: rightPointsSorted)
   }
 
+  def generateWedgePolygon(pointGenerator: Int => Set[Point])(n : Int): IndexedSeq[Point] = {
+    val l = Point(1,1)
+    val r = Point(n,n)
+    val p1 = Point(1,2)
+    val p2 = Point(2,1)
+    val points = pointGenerator(n-3).map(p => p + Vector2D(2,2)) + r + p1 + p2
+    var bottomPoints = Set.empty[Point]
+    var topPoints = Set.empty[Point]
+    for (p <- points) {
+      val sign = Math.signum((n - 1) * (p.y - 1) - (n - 1) * (p.x - 1))
+      if (sign < 0) bottomPoints += p
+      else topPoints += p
+    }
+
+    val leftPointsSorted = bottomPoints.toIndexedSeq.sortBy(p => p.y)
+    val rightPointsSorted = topPoints.toIndexedSeq.sortBy(p => -p.x)
+
+    val result = leftPointsSorted ++ rightPointsSorted
+
+    if (Polygon(result).isSelfIntersecting) println(s"Freshly generated polygon is self intersecting: $result")
+    if (result.map(_.x).distinct.size != n || result.map(_.y).distinct.size != n) println(s"duplicate coordinates used")
+
+    result
+  }
   def generateQuarterStarPolygon(points: Set[Point]): IndexedSeq[Point] = {
     val l = points.minBy(_.x)
     val r = points.maxBy(_.x)
     val n = points.size
-    var leftPoints = Set.empty[Point]
-    var rightPoints = Set.empty[Point]
-    for (p <- points - l - r) {
-      val sign = Math.signum((r.x - l.x) * (p.y - l.y) - (r.y - l.y) * (p.x - l.x))
-      if (sign <= 0) leftPoints += p
-      else rightPoints += p
+    val newPoint = Point(points.find(_.y == n).get.x, points.find(_.x == n).get.y)
+    val newPoints = points.filter(p => p.x != n && p.y != n) + newPoint + Point(n, n)
+    //    var bottomPoints = Set(l)
+    //    var topPoints = Set(r)
+    //    for (p <- points - l - r) {
+    //      val sign = Math.signum((r.x - l.x) * (p.y - l.y) - (r.y - l.y) * (p.x - l.x))
+    //      if (sign < 0) bottomPoints += p
+    //      else topPoints += p
+    //    }
+    var bottomPoints = Set.empty[Point]
+    var topPoints = Set.empty[Point]
+    for (p <- newPoints) {
+      val sign = Math.signum((n - 1) * (p.y - 1) - (n - 1) * (p.x - 1))
+      if (sign < 0) bottomPoints += p
+      else topPoints += p
     }
 
-//    val leftPointsSorted = leftPoints.toIndexedSeq.sortBy(p => p.x)
-//    val rightPointsSorted = rightPoints.toIndexedSeq.sortBy(p => -p.y)
-    val leftPointsSorted = leftPoints.toIndexedSeq.sortBy(p => ((p.y.toDouble - n / 2) / p.x, p.x*p.x + p.y*p.y))
-    val rightPointsSorted = rightPoints.toIndexedSeq.sortBy(p => (-p.y.toDouble / (p.x - n/2), -p.x*p.x - p.y*p.y))
+    val leftPointsSorted = bottomPoints.toIndexedSeq.sortBy(p => p.y)
+    val rightPointsSorted = topPoints.toIndexedSeq.sortBy(p => -p.x)
 
-    (l +: leftPointsSorted) ++ (r +: rightPointsSorted)
-//    val base = points.minBy(p => p.x*p.x + p.y*p.y)
-//    base +: (points - base).toIndexedSeq.sortBy(p => (p.y.toDouble / p.x, p.x*p.x + p.y*p.y))
+    val result = leftPointsSorted ++ rightPointsSorted
+
+    if (Polygon(result).isSelfIntersecting) println(s"Freshly generated polygon is self intersecting: $result")
+    if (result.map(_.x).distinct.size != n || result.map(_.y).distinct.size != n) println(s"duplicate coordinates used")
+
+    result
   }
 
   def generateSimpleDiagonal(n: Int)(implicit random: Random): IndexedSeq[Point] = {
-    val begin = Point(1,1)
-    var bottom = IndexedSeq(Point(3,2))
-    var top = IndexedSeq(Point(2,3))
+    val begin = Point(1, 1)
+    var bottom = IndexedSeq(Point(3, 2))
+    var top = IndexedSeq(Point(2, 3))
     for (i <- 4 to n) {
-      if (i % 2 == 0) top = (top.head + Vector2D(2,2)) +: top
-      else bottom = (bottom.head + Vector2D(2,2)) +: bottom
+      if (i % 2 == 0) top = (top.head + Vector2D(2, 2)) +: top
+      else bottom = (bottom.head + Vector2D(2, 2)) +: bottom
     }
     begin +: (bottom.reverse ++ top)
-//    var bottom: Seq[Point] = Seq.empty
-//    var top: Seq[Point] = Seq.empty
-//    var freeY = 1
-//    for (x <- 1 to n) {
-//      if (random.nextBoolean()) {
-//        val y = Math.max(1, Math.min(n, x - 1))
-//        bottom = Point(x, y) +: bottom
-//      } else {
-//        val y = Math.max(1, Math.min(n, x + 1))
-//        top = Point(x, y) +: top
-//      }
-//    }
-//    bottom.reverse ++ top
+    //    var bottom: Seq[Point] = Seq.empty
+    //    var top: Seq[Point] = Seq.empty
+    //    var freeY = 1
+    //    for (x <- 1 to n) {
+    //      if (random.nextBoolean()) {
+    //        val y = Math.max(1, Math.min(n, x - 1))
+    //        bottom = Point(x, y) +: bottom
+    //      } else {
+    //        val y = Math.max(1, Math.min(n, x + 1))
+    //        top = Point(x, y) +: top
+    //      }
+    //    }
+    //    bottom.reverse ++ top
   }
 
 

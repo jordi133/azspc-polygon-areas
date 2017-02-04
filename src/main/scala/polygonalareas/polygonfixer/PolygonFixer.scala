@@ -10,7 +10,7 @@ import scala.util.Random
   *
   * First generates a polygon that could have parallel edges. Next, fix these edges
   */
-class PolygonFixer(seed: Int = Random.nextInt(), offspringOnGoodPolygon: Int = 4, maxOffSpring: Int = 10) {
+class PolygonFixer(seed: Int = Random.nextInt(), offspringOnGoodPolygon: Int = 4, maxOffSpring: Int = 25) {
   val random = new Random(seed)
 
   def optimizeWithFamiliesFromPolygon(polygonGenerator: () => IndexedSeq[Point], maximize: Boolean, familyRevitalizations: Int = 10,
@@ -19,6 +19,7 @@ class PolygonFixer(seed: Int = Random.nextInt(), offspringOnGoodPolygon: Int = 4
 
     val sortSign = if (maximize) 1 else -1
     var families: Map[Int, Set[Pol]] = (0 until nrOfFamilies map (i => (i, Set(Pol(polygonGenerator()))))).toMap
+    for (p <- families.values.flatten) println(p.points)
     val n = families(0).iterator.next().points.size
     var familiesDied = 0
     var familyImprovements: Map[Int, Int] = ((0 until nrOfFamilies) map (_ -> 0)).toMap
@@ -34,7 +35,7 @@ class PolygonFixer(seed: Int = Random.nextInt(), offspringOnGoodPolygon: Int = 4
       case _ => -1
     }
 
-    while (families.values.flatten.nonEmpty) {
+    while (families.values.flatten.nonEmpty && count < 15000) {
       count += 1
       val newPop = families map { case (index, pop) => (index, familySelection(pop.par.flatMap(nextGen(_)(actionOnFound)).seq)) }
 
@@ -103,14 +104,23 @@ class PolygonFixer(seed: Int = Random.nextInt(), offspringOnGoodPolygon: Int = 4
 
     def getIndicesToMutate(indexOfParallelEdge: Int): Seq[Seq[Int]] = {
       def randomIndex: Int = {
-        val randomIndex1Try = random.nextInt(pol.points.size - 2)
-        if (randomIndex1Try == indexOfParallelEdge) pol.points.size - 2
-        else if (randomIndex1Try == indexOfParallelEdge + 1) pol.points.size - 1
-        else randomIndex1Try
+        if(random.nextDouble() < 0.5) {
+          val int = random.nextInt(n /4)
+          if (random.nextBoolean()) {
+            (indexOfParallelEdge + 1 + int) % n
+          } else {
+            (indexOfParallelEdge - 1 - int + n) % n
+          }
+        } else {
+          val randomIndex1Try = random.nextInt(n - 2)
+          if (randomIndex1Try == indexOfParallelEdge) n - 2
+          else if (randomIndex1Try == indexOfParallelEdge + 1) n - 1
+          else randomIndex1Try
+        }
+
       }
-      (for (i <- 1 to 10) yield Seq(indexOfParallelEdge, randomIndex)) ++ Seq(
+      (for (i <- 1 to maxOffSpring / 2) yield Seq(indexOfParallelEdge, randomIndex)) ++ Seq(
         Seq(indexOfParallelEdge, (indexOfParallelEdge + 1) % n),
-        //        Seq(indexOfParallelEdge, randomIndex),
         Seq((indexOfParallelEdge + 1) % n, (indexOfParallelEdge + 2) % n)
       )
     }
@@ -120,13 +130,12 @@ class PolygonFixer(seed: Int = Random.nextInt(), offspringOnGoodPolygon: Int = 4
     val indicesToHandle: Seq[Seq[Int]] = {
       if (indicesOfParallelEdges.isEmpty) {
         // if no parallel edges exist, then find pair of points to mutate
-        //        actionOnFound(pol.points)
         for (i <- 1 to offspringOnGoodPolygon) yield if (i % 2 == 0) randomPairOfIndices else randomPairOfNeighboringIndices
       } else {
         // else use parallel edges to mutate
-        (indicesOfParallelEdges flatMap { index =>
+        random.shuffle((indicesOfParallelEdges flatMap { index =>
           getIndicesToMutate(index)
-        }).distinct.take(maxOffSpring)
+        }).distinct).take(maxOffSpring)
       }
     }
 

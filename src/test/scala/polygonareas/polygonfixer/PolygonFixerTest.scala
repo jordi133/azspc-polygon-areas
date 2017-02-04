@@ -13,9 +13,9 @@ import scala.util.Random
   */
 class PolygonFixerTest extends WordSpec {
 
-  def getIndex(d: Double, acc: Int = 0): Int = {
+  def rollExponential(d: Double = Random.nextDouble(), acc: Int = 0): Int = {
     if (d > 0.5) acc
-    else getIndex(2 * d, acc + 1)
+    else rollExponential(2 * d, acc + 1)
   }
 
   def pointGenerator(n: Int) = if (Random.nextDouble() < 0.5) PointGenerator.generateDoubleDiagonalPoints((2 * Math.pow(n, 0.5)).toInt)(n)
@@ -29,8 +29,8 @@ class PolygonFixerTest extends WordSpec {
 
       for (i <- 1 to 500) {
         //                val n = SolutionManager.opportunities.filter(_ < 40).head
-        //                val n = SolutionManager.opportunities.head
-        val n = SolutionManager.opportunities(Math.min(getIndex(Random.nextDouble()), puzzleSizes.length - 1))
+        val n = SolutionManager.opportunities.head
+        //        val n = SolutionManager.opportunities(Math.min(rollExponential(), puzzleSizes.length - 3))
         println(s"n=$n")
         //        fixer.optimizeWithFamiliesFromPoints(pointGenerator(n), false)(actionOnFound)
         //        fixer.optimizeWithFamiliesFromPoints(pointGenerator(n), true)(actionOnFound)
@@ -45,34 +45,56 @@ class PolygonFixerTest extends WordSpec {
       }
     }
 
-    "find best based on generated polygons" in {
+    "find best based on generated polygons for single n" in {
+      val actionOnFound: IndexedSeq[Point] => Unit = { points => SolutionManager.addSolution(points) }
       val fixer = new PolygonFixer(offspringOnGoodPolygon = 50)
+      val n = puzzleSizes.last
+      def pointGenerator: Int => Set[Point] = n => PointGenerator.generateDiagonalPoints((1.5 * Math.pow(n, 0.5)).toInt)(n)().toSet
+      def polygonGeneratorMax = PolygonGenerator.generatePolygonInSquare(PolygonGenerator.generateWedgePolygon(pointGenerator))(n)
+      def polygonGeneratorMin = () => PolygonGenerator.generateWedgePolygon(pointGenerator)(n)
+      fixer.optimizeWithFamiliesFromPolygon(polygonGeneratorMax,
+        maximize = true,
+        nrOfFamilies = 4,
+        familyRevitalizations = 0,
+        maxRoundsWithoutImprovement = 100,
+        familySize = 10)(actionOnFound)
+    }
+    "find best based on generated polygons" in {
+      val fixer = new PolygonFixer(offspringOnGoodPolygon = 10)
       //      val actionOnFound: IndexedSeq[Point] => Unit = { points => assert(!Polygon(points.toArray).isSelfIntersecting) }
       val actionOnFound: IndexedSeq[Point] => Unit = { points => SolutionManager.addSolution(points) }
 
       for (i <- 1 to 100) {
-        val n = SolutionManager.opportunities.filter(_ < 100).head
+                val n = SolutionManager.opportunities.filter(_ < 300).head
 //        val n = SolutionManager.opportunities.head
-//        val n = SolutionManager.opportunities(Math.min(getIndex(Random.nextDouble()), puzzleSizes.length - 1))
+        //        val n = SolutionManager.opportunities(Math.min(rollExponential(), puzzleSizes.length - 3))
         println(s"n=$n")
         implicit val random = new Random(i)
-        def polygonGeneratorMax = PolygonGenerator.generatePolygonInSquare(PolygonGenerator.generateSimpleDiagonal)(n)
-        def polygonGeneratorMin = () => PolygonGenerator.generateSimpleDiagonal(n).toIndexedSeq
-//        def polygonGeneratorMax = PolygonGenerator.generatePolygonInSquare(PointGenerator.generateDiagonalPoints((1.5 * Math.pow(n, 0.5)).toInt), PolygonGenerator.generateQuarterStarPolygon)(n)
-//        def polygonGeneratorMin = () => PolygonGenerator.generateQuarterStarPolygon(PointGenerator.generateDiagonalPoints((1.5 * Math.pow(n, 0.5)).toInt)(n)().toSet)
+        //        def polygonGeneratorMax = PolygonGenerator.generatePolygonInSquare(PolygonGenerator.generateSimpleDiagonal)(n)
+        //        def polygonGeneratorMin = () => PolygonGenerator.generateSimpleDiagonal(n).toIndexedSeq
+        //        def polygonGeneratorMax = PolygonGenerator.generatePolygonInSquare(PointGenerator.generateDiagonalPoints((1.5 * Math.pow(n, 0.5)).toInt), PolygonGenerator.generateQuarterStarPolygon)(n)
+        //        def polygonGeneratorMin = () => PolygonGenerator.generateQuarterStarPolygon(PointGenerator.generateDiagonalPoints((1.5 * Math.pow(n, 0.5)).toInt)(n)().toSet)
+
+        def pointGenerator: Int => Set[Point] = n => PointGenerator.generateDiagonalPoints((1.5 * Math.pow(n, 0.5)).toInt)(n)().toSet
+        def polygonGeneratorMax = PolygonGenerator.generatePolygonInSquare(PolygonGenerator.generateWedgePolygon(pointGenerator))(n)
+        def polygonGeneratorMin = () => PolygonGenerator.generateWedgePolygon(pointGenerator)(n)
+
+
         fixer.optimizeWithFamiliesFromPolygon(polygonGeneratorMin,
           maximize = false,
           nrOfFamilies = 4,
           familyRevitalizations = 0,
           maxRoundsWithoutImprovement = 100,
-          familySize = 5)(actionOnFound)
+          familySize = 10)(actionOnFound)
         fixer.optimizeWithFamiliesFromPolygon(polygonGeneratorMax,
           maximize = true,
           nrOfFamilies = 4,
           familyRevitalizations = 0,
           maxRoundsWithoutImprovement = 100,
-          familySize = 5)(actionOnFound)
+          familySize = 10)(actionOnFound)
       }
     }
   }
+
+
 }

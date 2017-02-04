@@ -1,7 +1,6 @@
 package polygonalareas.generators
 
 import polygonalareas.{AnglesSet, _}
-import polygonalareas.Implicits.LineSegmentOps
 
 import scala.annotation.tailrec
 import scala.util.Random

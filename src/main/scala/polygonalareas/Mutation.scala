@@ -1,7 +1,6 @@
 package polygonalareas
 
 import scala.util.Random
-import Implicits.LineSegmentOps
 import Implicits.PointToTuple
 
 /**

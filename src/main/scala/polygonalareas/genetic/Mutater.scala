@@ -1,19 +1,46 @@
 package polygonalareas.genetic
 
 import polygonalareas.Point
+import polygonalareas.generators.PolygonConstruct
 
 import scala.collection.IndexedSeq
+import scala.util.Random
 
 /**
   * Created by Jordi on 29-1-2017.
   */
-class Mutater {
+object Mutater {
 
-  def pickPointsToMutate(points: Seq[Point]): (Int, Int) = {
+  def pickPointsToMutate(polygon: PolygonConstruct): (Int, Int) = {
     ???
   }
 
-  def mutateByAdjustingPoints(points: IndexedSeq[Point], indicesToMutate: Seq[Int]): Iterator[Seq[Point]] = {
+  def randomPairOfIndices(n: Int)(implicit random: Random): Seq[Int] = {
+    val index1 = random.nextInt(n - 1)
+    val index2Try = random.nextInt(n - 2)
+    val index2 = if (index2Try == index1) n - 1 else index2Try
+    Seq(index1, index2)
+  }
+
+  def getIndicesToMutate(n: Int, maxOffSpring: Int, indexOfParallelEdge: Int)(implicit random: Random): Seq[Seq[Int]] = {
+    def randomIndex: Int = {
+      val randomIndex1Try = random.nextInt(n - 2)
+      if (randomIndex1Try == indexOfParallelEdge) n - 2
+      else if (randomIndex1Try == indexOfParallelEdge + 1) n - 1
+      else randomIndex1Try
+    }
+    (for (i <- 1 to maxOffSpring / 2) yield Seq(indexOfParallelEdge, randomIndex)) ++ Seq(
+      Seq(indexOfParallelEdge, (indexOfParallelEdge + 1) % n),
+      Seq((indexOfParallelEdge + 1) % n, (indexOfParallelEdge + 2) % n)
+    )
+  }
+
+  def randomPairOfNeighboringIndices(n: Int)(implicit random: Random): Seq[Int] = {
+    val index = random.nextInt(n - 1)
+    Seq(index, index + 1)
+  }
+
+  def mutateGivenIndices(points: IndexedSeq[Point], indicesToMutate: Seq[Int]): Iterator[Seq[Point]] = {
     val mutations = generateMutations(points, indicesToMutate)
     val resultingPointsIterator = mutations map { mutation => updatedPoints(points, mutation, indicesToMutate) } filter (_ != points)
     resultingPointsIterator
@@ -29,6 +56,27 @@ class Mutater {
     } yield (xPerm zip yPerm) map { case (xi, yi) => (xs(xi), ys(yi)) }
 
     mutations
+  }
+
+  def reorder[T](points: IndexedSeq[T], indexToSwap: Int, indexToInject: Int): (IndexedSeq[T], Seq[Int]) = {
+    val swapPoint = points(indexToSwap)
+    val partOne = points.take(indexToInject).filter(_ != swapPoint)
+    val partTwo = points.drop(indexToInject).filter(_ != swapPoint)
+    val n = points.size
+    val swapFromPartOne = points.take(indexToInject).contains(swapPoint)
+    val impactedIndices =
+      if (swapFromPartOne) Seq(indexToSwap, (indexToInject - 2 + n) % n, (indexToInject - 1 + n) % n)
+      else Seq((indexToInject + n - 1) % n, indexToInject, indexToSwap)
+
+    val resultingSeq = partOne ++ (swapPoint +: partTwo)
+
+    (resultingSeq, impactedIndices)
+  }
+
+  def mutateByAdjustingPoints(points: IndexedSeq[Point], indicesToMutate: Seq[Int]): Iterator[Seq[Point]] = {
+    val mutations = generateMutations(points, indicesToMutate)
+    val resultingPointsIterator = mutations map { mutation => updatedPoints(points, mutation, indicesToMutate) } filter (_ != points)
+    resultingPointsIterator
   }
 
   def updatedPoints(points: Seq[Point], mutation: Seq[(Int, Int)], indicesToMutate: Seq[Int]): Seq[Point] =  indicesToMutate match {
