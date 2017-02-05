@@ -21,6 +21,7 @@ package object polygonalareas {
   object Point {
     def apply(tuple: (Int, Int)): Point = Point(tuple._1, tuple._2)
   }
+
   /**
     * A point consists of two integer coordinates, representing a point in a 2D grid
     */
@@ -32,6 +33,7 @@ package object polygonalareas {
 
     def +(v: Vector2D): Point = Point(x + v.x, y + v.y)
   }
+
   /**
     * A vector consists of two integer components, representing a direction in a 2D grid
     */
@@ -40,6 +42,10 @@ package object polygonalareas {
       * @return the cross product of this vector with the other vector
       */
     def x(other: Vector2D): Int = x * other.y - y * other.x
+
+    def dot(other: Vector2D): Int = other.x * x + other.y * y
+
+    lazy val length: Double = Math.sqrt(x*x+y*y)
   }
 
   /**

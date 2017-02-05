@@ -9,7 +9,7 @@ import scala.util.Random
   */
 object PointGenerator {
 
-  def generateDiagonalPoints(spread: Int = 4, seed: Option[Int] = None): (Int) => IndexedSeq[Point] = { n =>
+  def generateDiagonalPoints(spread: Int = 4, seed: Option[Int] = None): (Int) => Set[Point] = { n =>
     val random = new Random(seed.getOrElse(Random.nextInt()))
     val center = n / 2
     def generatePoints(blockCenter: Int, acc: Set[Point]): IndexedSeq[Point] = {
@@ -32,13 +32,13 @@ object PointGenerator {
       }
     }
 
-    val result = generatePoints(1, Set.empty)
-    require(result.map(_.x).distinct.size == n, s"duplicate x coordinate in $result")
-    require(result.map(_.y).distinct.size == n, s"duplicate y coordinate in $result")
+    val result = generatePoints(1, Set.empty).toSet
+    require(result.map(_.x).size == n, s"duplicate x coordinate in $result")
+    require(result.map(_.y).size == n, s"duplicate y coordinate in $result")
     result
   }
 
-  def generateRandomPoints(seed: Int = Random.nextInt()): (Int) => IndexedSeq[Point] = { (n) =>
+  def generateRandomPoints(seed: Int = Random.nextInt()): (Int) => Set[Point] = { (n) =>
     val random = new Random(seed)
     var rest = (1 to n).toVector
     val result = for (x <- 1 to n) yield {
@@ -47,13 +47,12 @@ object PointGenerator {
       rest = rest.take(i) ++ rest.drop(i + 1)
       Point(x, y)
     }
-    result
+    result.toSet
   }
 
-  def generateCrossPoints(seed: Option[Int] = None): (Int) => IndexedSeq[Point] = { (n) =>
+  def generateCrossPoints(radiusStep: Int = 4, seed: Option[Int] = None): (Int) => Set[Point] = { (n) =>
     val random = new Random(seed.getOrElse(Random.nextInt()))
     val center = n / 2
-    val radiusStep = 4
     def generatePoints(radius: Int, acc: Set[Point]): IndexedSeq[Point] = {
       def getIndexIntervalForRadius: Seq[Int] = {
         val interval1 = 1 to Math.min(center, radius)
@@ -80,7 +79,7 @@ object PointGenerator {
       }
     }
 
-    generatePoints(1, Set.empty)
+    generatePoints(1, Set.empty).toSet
   }
 
 }

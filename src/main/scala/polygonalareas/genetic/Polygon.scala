@@ -9,7 +9,7 @@ import scala.util.Random
   */
 
 case class Polygon(points: IndexedSeq[Point]) {
-  lazy val parEdges = points.size - angles.values.flatten.size
+  lazy val parEdges = angles.values.filter(_.size > 1).flatten.size
   lazy val isValid = angles.size == points.size
   lazy val score = doubleSurface(points)
   lazy val edges: Seq[LineSegment] = (points zip (points.tail :+ points.head)).map{case (p1, p2) => LineSegment(p1,p2)}.toSeq
@@ -48,15 +48,17 @@ case class Polygon(points: IndexedSeq[Point]) {
     val newPolygonsFromReordering = for {
       indices <- indicesToHandle
       indicesToSwap = (indices.head, indices(1))
-      (newPolygon, indicesThatChange) = Mutater.reorder(points, indicesToSwap._1, indicesToSwap._2) if !hasSelfIntersectingEdgesOnIndices(indicesThatChange)
-    } yield newPolygon
+      (newPolygon, indicesThatChange) = Mutater.reorder(points, indicesToSwap._1, indicesToSwap._2)
+      polygon = Polygon(newPolygon) if !polygon.hasSelfIntersectingEdgesOnIndices(indicesThatChange)
+    } yield polygon
 
     val newPolygonsFromPointMutations = for {
       indices <- indicesToHandle
-      newPolygon <- Mutater.mutateGivenIndices(points, indices) if !hasSelfIntersectingEdgesOnIndices(indices)
-    } yield newPolygon.toIndexedSeq
+      newPolygon <- Mutater.mutateGivenIndices(points, indices)
+      polygon = Polygon(newPolygon.toIndexedSeq) if !polygon.hasSelfIntersectingEdgesOnIndices(indices)
+    } yield polygon
 
-    (newPolygonsFromReordering ++ newPolygonsFromPointMutations).map(Polygon)
+    newPolygonsFromReordering ++ newPolygonsFromPointMutations
   }
 
   def hasSelfIntersectingEdgesOnIndices(indices: Seq[Int]): Boolean = {
