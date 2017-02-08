@@ -1,6 +1,7 @@
-package polygonalareas
+package polygonalareas.core
 
-import AnglesSet._
+import polygonalareas.core.AnglesSet._
+import polygonalareas.{Point, Vector2D}
 
 /**
   * Created by Jordi on 16-12-2016.

@@ -46,6 +46,7 @@ package object polygonalareas {
     def dot(other: Vector2D): Int = other.x * x + other.y * y
 
     lazy val length: Double = Math.sqrt(x*x+y*y)
+    lazy val squareLength: Double = x*x+y*y
   }
 
   /**

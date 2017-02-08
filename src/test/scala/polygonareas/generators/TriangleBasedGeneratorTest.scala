@@ -1,8 +1,9 @@
 package polygonareas.generators
 
 import org.scalatest.WordSpec
-import polygonalareas.{Point, Polygon}
+import polygonalareas.Point
 import polygonalareas.generators.TriangleBasedGenerator
+import polygonalareas.genetic.Polygon
 
 /**
   * Created by Jordi on 2-1-2017.
@@ -16,7 +17,7 @@ class TriangleBasedGeneratorTest extends WordSpec {
       val pols = gen.getPolygons(Vector(Point(1, 1), Point(4, 2), Point(5, 4)))
       assert(pols.nonEmpty)
       for (p <- pols) {
-        val polygon = Polygon(p.toArray)
+        val polygon = Polygon(p)
         println(polygon)
         assert(!polygon.isSelfIntersecting  )
         assert(polygon.angles.size == polygon.size)

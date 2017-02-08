@@ -1,7 +1,8 @@
-package polygonareas
+package polygonareas.core
 
 import org.scalatest.WordSpec
-import polygonalareas.{Point, SolutionManager}
+import polygonalareas.Point
+import polygonalareas.core.SolutionManager
 
 /**
   * Created by Jordi on 18-12-2016.

@@ -1,7 +1,8 @@
-package polygonareas
+package polygonareas.core
 
 import org.scalatest.WordSpec
-import polygonalareas.{AnglesSet, Point, Polygon, Vector2D}
+import polygonalareas.core.AnglesSet
+import polygonalareas.{Point, Vector2D}
 
 /**
   * Created by Jordi on 16-12-2016.

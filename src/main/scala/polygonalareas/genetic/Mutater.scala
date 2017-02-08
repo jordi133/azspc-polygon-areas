@@ -1,8 +1,6 @@
 package polygonalareas.genetic
 
 import polygonalareas.Point
-import polygonalareas.generators.PolygonConstruct
-
 import scala.collection.IndexedSeq
 import scala.util.Random
 
@@ -10,10 +8,6 @@ import scala.util.Random
   * Created by Jordi on 29-1-2017.
   */
 object Mutater {
-
-  def pickPointsToMutate(polygon: PolygonConstruct): (Int, Int) = {
-    ???
-  }
 
   def randomPairOfIndices(n: Int)(implicit random: Random): Seq[Int] = {
     val index1 = random.nextInt(n - 1)

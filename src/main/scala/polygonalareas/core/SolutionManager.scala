@@ -1,6 +1,9 @@
-package polygonalareas
+package polygonalareas.core
 
 import java.io.PrintWriter
+
+import polygonalareas._
+import polygonalareas.genetic.Polygon
 
 import scala.io.Source
 import scala.util.Try
@@ -70,7 +73,7 @@ object SolutionManager {
   }
 
   def addSolution(polygon: Seq[Point]) = {
-    val p = Polygon(polygon.toArray)
+    val p = Polygon(polygon.toIndexedSeq)
     require(p.angles.size == p.size, s"polygon has parallel edges: $polygon")
     require(!p.isSelfIntersecting, s"polygon is self intersecting: $polygon")
     require(polygon.map(_.x).toSet.size == polygon.size, s"polygon has duplicate x coordinate")

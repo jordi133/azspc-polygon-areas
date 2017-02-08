@@ -1,6 +1,7 @@
 package polygonalareas.generators
 
-import polygonalareas.{AnglesSet, LineSegment, Point}
+import polygonalareas.core.AnglesSet
+import polygonalareas.{LineSegment, Point}
 
 import scala.util.Random
 

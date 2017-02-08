@@ -1,6 +1,7 @@
 package polygonalareas.genetic
 
-import polygonalareas.{AnglesSet, LineSegment, Point, Vector2D, doubleSurface}
+import polygonalareas.core.AnglesSet
+import polygonalareas.{LineSegment, Point, Vector2D, doubleSurface}
 
 import scala.util.Random
 
@@ -14,6 +15,7 @@ case class Polygon(points: IndexedSeq[Point]) {
   lazy val score = doubleSurface(points)
   lazy val edges: Seq[LineSegment] = (points zip (points.tail :+ points.head)).map{case (p1, p2) => LineSegment(p1,p2)}.toSeq
   lazy val isSelfIntersecting: Boolean = edges.exists(ls1 => edges.exists(ls2 => ls1 != ls2 && (ls1 intersects ls2)))
+  lazy val size = points.size
 
   lazy val angles: Map[Vector2D, Seq[Int]] =  {
     def calcMap(i: Int, acc: Map[Vector2D, Seq[Int]]): Map[Vector2D, Seq[Int]] = {

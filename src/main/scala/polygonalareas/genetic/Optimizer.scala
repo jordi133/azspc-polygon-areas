@@ -1,6 +1,7 @@
 package polygonalareas.genetic
 
-import polygonalareas.{SolutionManager, Point, doubleSurface}
+import polygonalareas.core.SolutionManager
+import polygonalareas.{Point, doubleSurface}
 
 import scala.util.Random
 

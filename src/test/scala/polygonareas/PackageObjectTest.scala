@@ -1,4 +1,4 @@
-package polygonareas.polygonfixer
+package polygonareas
 
 import org.scalatest.WordSpec
 import polygonalareas._
