@@ -59,10 +59,10 @@ object PolygonGenerator {
   }
 
   def generateWedgePolygon(pointGenerator: Int => Set[Point]): Int => IndexedSeq[Point] = { n =>
-    val r = Point(n,n)
-    val p1 = Point(1,2)
-    val p2 = Point(2,1)
-    val points = pointGenerator(n-3).map(p => p + Vector2D(2,2)) + r + p1 + p2
+    val r = Point(n, n)
+    val p1 = Point(1, 2)
+    val p2 = Point(2, 1)
+    val points = pointGenerator(n - 3).map(p => p + Vector2D(2, 2)) + r + p1 + p2
     var bottomPoints = Set.empty[Point]
     var topPoints = Set.empty[Point]
     for (p <- points) {
@@ -83,8 +83,8 @@ object PolygonGenerator {
 
   def generateDoubleWedgePolygon(pointGenerator: Int => Set[Point]): Int => IndexedSeq[Point] = { n =>
     val points = pointGenerator(n - 2)
-    val start = Point(2,1)
-    val end = Point(1,2)
+    val start = Point(2, 1)
+    val end = Point(1, 2)
 
     // take all points below (x+y==n)
     // for all above, create half star
@@ -96,22 +96,22 @@ object PolygonGenerator {
   }
 
   def generateStarPolygon(pointGenerator: Int => Set[Point]): Int => IndexedSeq[Point] = { n =>
-    val points = pointGenerator(n).toSeq.map(p => Point(2*p.x, 2*p.y))
+    val points = pointGenerator(n).toSeq.map(p => Point(2 * p.x, 2 * p.y))
 
-    val center = Point(1+n/2, 1+n/2)
+    val center = Point(1 + n / 2, 1 + n / 2)
 
     val (leftPoints, rightPoints) = points.partition(_.x < center.x)
 
     val rightSorted = rightPoints.sortWith { (p1, p2) =>
       (p1.x - center.x) * (p2.y - center.y) < (p1.y - center.y) * (p2.x - center.x) ||
-        ((p1.x - center.x) * (p2.y - center.y) == (p1.y - center.y) * (p2.x - center.x) && (p1 - center).length < (p2 -center).length)
+        ((p1.x - center.x) * (p2.y - center.y) == (p1.y - center.y) * (p2.x - center.x) && (p1 - center).length < (p2 - center).length)
     }
     val leftSorted = leftPoints.sortWith { (p1, p2) =>
       (p1.x - center.x) * (p2.y - center.y) < (p1.y - center.y) * (p2.x - center.x) ||
-        ((p1.x - center.x) * (p2.y - center.y) == (p1.y - center.y) * (p2.x - center.x) && (p1 - center).length < (p2 -center).length)
+        ((p1.x - center.x) * (p2.y - center.y) == (p1.y - center.y) * (p2.x - center.x) && (p1 - center).length < (p2 - center).length)
     }
 
-    val result = (rightSorted ++ leftSorted).toIndexedSeq.map(p => Point(p.x/2, p.y/2))
+    val result = (rightSorted ++ leftSorted).toIndexedSeq.map(p => Point(p.x / 2, p.y / 2))
 
     require(result.map(_.x).distinct.size == n && result.map(_.y).distinct.size == n, s"duplicate coordinates used")
     require(!Polygon(result).isSelfIntersecting, s"Generated polygon is self intersecting: $result")
@@ -152,5 +152,70 @@ object PolygonGenerator {
       pointsArray.update(points.size - i - 1, rightPointsSorted(i))
 
     pointsArray.toIndexedSeq
+  }
+
+  def createFractalFromNarrowDiagonal: Int => IndexedSeq[Point] = { n =>
+    require(n % 2 == 1)
+    val initialDiagonal = generateDiagonalPolygon(PointGenerator.generateNarrowDiagonal()(n))
+    val diagonal = initialDiagonal.tail ++ IndexedSeq(initialDiagonal.head)
+
+    val firstHalf = diagonal.take(n / 2)
+    val secondHalf = diagonal.drop(n - n / 2)
+    println(s"diagonal: $diagonal")
+    println(s"firstHalf: $firstHalf")
+    println(s"secondHalf: $secondHalf")
+
+    var pointsToMoveRight = IndexedSeq.empty[Point]
+    var pointsToMoveLeft = IndexedSeq.empty[Point]
+    var pointsToMoveDown = IndexedSeq.empty[Point]
+    var pointsToMoveUp = IndexedSeq.empty[Point]
+
+    for (i <- 1 to n / 4) {
+      if (i % 2 == 1) {
+        // move points
+        pointsToMoveRight = diagonal(i) +: pointsToMoveRight
+        pointsToMoveLeft = secondHalf(i) +: pointsToMoveLeft
+      } else {
+        pointsToMoveDown = firstHalf(firstHalf.length - i - 1) +: pointsToMoveDown
+        pointsToMoveUp = secondHalf(firstHalf.length - i - 1) +: pointsToMoveUp
+      }
+    }
+    val pointsToStayLeft = firstHalf.filter(_.x < n / 2) diff pointsToMoveRight
+    val pointsToStayUp = firstHalf.filterNot(_.x < n / 2) diff pointsToMoveDown
+    val pointsToStayRight = secondHalf.filterNot(_.x < n / 2) diff pointsToMoveLeft
+    val pointsToStayDown = secondHalf.filter(_.x < n / 2) diff pointsToMoveUp
+    println(s"pointsToStayLeft: $pointsToStayLeft")
+    println(s"pointsToStayUp: $pointsToStayUp")
+    println(s"pointsToStayRight: $pointsToStayRight")
+    println(s"pointsToStayDown: $pointsToStayDown")
+    println(s"pointsToMoveRight: $pointsToMoveRight")
+    println(s"pointsToMoveLeft: $pointsToMoveLeft")
+    println(s"pointsToMoveDown: $pointsToMoveDown")
+    println(s"pointsToMoveUp: $pointsToMoveUp")
+
+
+    val (movedRight, movedLeft) = (for ((p1, p2) <- pointsToMoveRight zip pointsToMoveLeft) yield {
+      val newP1 = Point(p2.x, p1.y)
+      val newP2 = Point(p1.x, p2.y)
+      (newP1, newP2)
+    }).unzip
+    val (movedUp, movedDown) = (for ((p1, p2) <- pointsToMoveUp zip pointsToMoveDown) yield {
+      val newP1 = Point(p1.x, p2.y)
+      val newP2 = Point(p2.x, p1.y)
+      (newP1, newP2)
+    }).unzip
+
+    val part1 = pointsToStayLeft ++ movedRight.reverse ++ movedDown.reverse ++ pointsToStayUp
+    val part2 = pointsToStayRight ++ movedLeft.reverse ++ movedUp.reverse ++ pointsToStayDown
+    val result = part1 ++ (Point(n, n) +: part2)
+
+    println(s"part1: $part1")
+    println(s"part2: $part2")
+
+    require(result.size == n, s"Size of generated polygon incorrect: actual size ${result.size}, expected: $n")
+    require(result.map(_.x).distinct.size == n, s"duplicate x coordinates (${result.map(_.x).diff(result.map(_.x).distinct)}) used in $result")
+    require(result.map(_.y).distinct.size == n, s"duplicate y coordinates (${result.map(_.y).diff(result.map(_.y).distinct)}) used in $result")
+    require(!Polygon(result).isSelfIntersecting, s"Generated polygon is self intersecting: $result")
+    result
   }
 }

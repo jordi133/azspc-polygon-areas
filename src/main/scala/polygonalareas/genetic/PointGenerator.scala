@@ -82,4 +82,34 @@ object PointGenerator {
     generatePoints(1, Set.empty).toSet
   }
 
+  def generateNarrowDiagonal(seed: Int = Random.nextInt()): (Int) => Set[Point] = { (n) =>
+    val maxEvenNumber = n - (n % 2)
+    val diagonal = (for (i <- 1 to maxEvenNumber) yield {
+      if (i % 2 == 0) Point(i, i - 1)
+      else Point(i, i + 1)
+    }).toSet
+    val result =
+      if (n % 2 == 0) diagonal
+      else diagonal + Point(n, n)
+
+    require(result.map(_.x).size == n, s"duplicate x coordinate in $result")
+    require(result.map(_.y).size == n, s"duplicate y coordinate in $result")
+    result
+  }
+
+
+  def combine(pg1: Int => Set[Point], pg2: Int => Set[Point]): Int => Set[Point] = { n =>
+    val points2Size = n / 2
+    val points1Size = n - points2Size
+
+    val points1 = pg1(points1Size)
+    val points2 = pg2(points2Size)
+    val points1Mapped = points1.map(p => Point(2 * p.x - 1, 2 * p.y - 1))
+    val points2Mapped = points2.map(p => Point(2 * p.x, 2 * p.y))
+    val result  =  points1Mapped ++ points2Mapped
+    require(result.map(_.x).size == n, s"duplicate x coordinate in $result")
+    require(result.map(_.y).size == n, s"duplicate y coordinate in $result")
+    result
+  }
+
 }

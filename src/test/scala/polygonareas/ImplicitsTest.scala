@@ -1,7 +1,6 @@
 package polygonareas
 
 import org.scalatest.WordSpec
-import polygonalareas.Implicits.LineSegmentOps
 import polygonalareas.{LineSegment, Point}
 
 /**

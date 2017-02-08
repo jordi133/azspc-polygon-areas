@@ -14,8 +14,6 @@ class PolygonGeneratorTest extends WordSpec{
       val n = 100
       for (i <- 1 to 100) {
         val polygon = PolygonGenerator.generatePolygonInSquare(PolygonGenerator.generateWedgePolygon(PointGenerator.generateRandomPoints()))(n)
-        println(polygon)
-        println((1 to 100).filter(!polygon.map(_.x).contains(_)))
         assert(polygon.map(_.x).distinct.size === n)
         assert(polygon.map(_.y).distinct.size === n)
       }
@@ -27,6 +25,19 @@ class PolygonGeneratorTest extends WordSpec{
     "generate valid polygons" in {
       val polygon = PolygonGenerator.generateStarPolygon(PointGenerator.generateDiagonalPoints(spread = 4))(100)
       println(polygon)
+    }
+  }
+
+  "createFractalFromNarrowDiagonal" should {
+    "generate a valid polygon for n=15" in {
+      val pg = PolygonGenerator.createFractalFromNarrowDiagonal(15)
+      println(pg)
+      assert(pg.size == 15)
+    }
+    "generate a valid polygon for n=13" in {
+      val pg = PolygonGenerator.createFractalFromNarrowDiagonal(13)
+      println(pg)
+      assert(pg.size == 13)
     }
   }
 
