@@ -49,77 +49,28 @@ object SolutionManager {
   }
 
   def opportunities: List[Int] = {
-    val currentScores: Map[Int, Int] = puzzleSizes.map { size => size -> (getMaxSolution(size).map(doubleSurface).getOrElse(Integer.MIN_VALUE) - getMinSolution(size).map(doubleSurface).getOrElse(Integer.MAX_VALUE)) }.toMap
+    val currentScores: Map[Int, Int] = puzzleSizes.map { size => size -> (getMaxSolution(size).map(doubleSurface).getOrElse(size*size) - getMinSolution(size).map(doubleSurface).getOrElse(size*size)) }.toMap
     val opportunities: List[(Int, Double)] = (puzzleSizes zip currentScores) map { case (size, score) => size -> currentScores(size).toDouble / bestRawScores(size) }
     println(s"Opportunities:\n${opportunities.sortBy(_._2).mkString("\n")}")
     println(s"Current score: ${opportunities.map(_._2).sum}")
     opportunities.sortBy(_._2).map(_._1)
   }
 
-  def addSolution2(polygon: Seq[Point]) = {
+  def addSolution(polygon: Seq[Point]) = {
     val size = polygon.size
     getMaxSolution(size) match {
-      case Some(max) if doubleSurface(max) < doubleSurface(polygon) =>
-        polygons = polygons.updated(size, (getMinSolution(size), Some(polygon)))
-        println(s"Updated max solution for size=$size, score improved by raw ${doubleSurface(polygon) - doubleSurface(max)}/2")
+      case Some(max) if doubleSurface(max) > doubleSurface(polygon) =>
       case _ =>
+        polygons = polygons.updated(size, (getMinSolution(size), Some(polygon)))
+        println(s"Updated max solution for size=$size: ${doubleSurface(polygon) / 2}")
+        saveToFile()
     }
     getMinSolution(size) match {
-      case Some(min) if doubleSurface(min) > doubleSurface(polygon) =>
-        polygons = polygons.updated(size, (Some(polygon), getMaxSolution(size)))
-        println(s"Updated min solution for size=$size, score improved by raw ${doubleSurface(min) - doubleSurface(polygon)}/2")
+      case Some(min) if doubleSurface(min) < doubleSurface(polygon) =>
       case _ =>
-    }
-  }
-
-  def addSolution(polygon: Seq[Point]) = {
-    val p = Polygon(polygon.toIndexedSeq)
-    require(p.angles.size == p.size, s"polygon has parallel edges: $polygon")
-    require(!p.isSelfIntersecting, s"polygon is self intersecting: $polygon")
-    require(polygon.map(_.x).toSet.size == polygon.size, s"polygon has duplicate x coordinate")
-    require(polygon.map(_.y).toSet.size == polygon.size, s"polygon has duplicate y coordinate")
-    polygons.get(polygon.size) match {
-      case None =>
-        polygons = polygons.updated(polygon.size, (Some(polygon), Some(polygon)))
-        println(s"1Updated min and max solution for size=${polygon.size}")
+        polygons = polygons.updated(size, (Some(polygon), getMaxSolution(size)))
+        println(s"Updated min solution for size=$size: ${doubleSurface(polygon) / 2}")
         saveToFile()
-      case Some((None, None)) =>
-        polygons = polygons.updated(polygon.size, (Some(polygon), Some(polygon)))
-        println(s"2Updated min and max solution for size=${polygon.size}")
-        saveToFile()
-      case Some((Some(min), None)) =>
-        if (doubleSurface(polygon) < doubleSurface(min)) {
-          polygons = polygons.updated(polygon.size, (Some(polygon), Some(min)))
-          println(s"3Updated min and max solution for size=${polygon.size}, score improved by raw ${doubleSurface(min) - doubleSurface(polygon)}/2")
-          saveToFile()
-        }
-        else {
-          polygons = polygons.updated(polygon.size, (Some(min), Some(polygon)))
-          println(s"4Updated max solution for size=${polygon.size}, score improved by raw -${doubleSurface(polygon) - doubleSurface(min)}/2")
-          saveToFile()
-        }
-      case Some((None, Some(max))) =>
-        if (doubleSurface(polygon) > doubleSurface(max)) {
-          polygons = polygons.updated(polygon.size, (Some(max), Some(polygon)))
-          println(s"5Updated min and max solution for size=${polygon.size}, score improved by raw ${doubleSurface(polygon) - doubleSurface(max)}/2")
-          saveToFile()
-        }
-        else {
-          polygons = polygons.updated(polygon.size, (Some(polygon), Some(max)))
-          println(s"6Updated min solution for size=${polygon.size}, score improved by raw ${doubleSurface(max) - doubleSurface(polygon)}/2")
-          saveToFile()
-        }
-      case Some((Some(min), Some(max))) =>
-        if (doubleSurface(polygon) > doubleSurface(max)) {
-          polygons = polygons.updated(polygon.size, (Some(min), Some(polygon)))
-          println(s"7Updated max solution for size=${polygon.size}, score improved by raw ${doubleSurface(polygon) - doubleSurface(max)}/2")
-          saveToFile()
-        }
-        if (doubleSurface(polygon) < doubleSurface(min)) {
-          polygons = polygons.updated(polygon.size, (Some(polygon), Some(max)))
-          println(s"8Updated min solution for size=${polygon.size}, score improved by raw -${doubleSurface(min) - doubleSurface(polygon)}/2")
-          saveToFile()
-        }
     }
   }
 
@@ -154,8 +105,6 @@ object SolutionManager {
         val (x, y) = str.splitAt(str.indexOf(','))
         Point(x.filter(c => c.isDigit).toInt, y.filter(c => c.isDigit).toInt)
       }
-      //      val result = new Array[Point](coordinates.length)
-      //      for (i <- coordinates.indices) result.update(i, coordinates(i))
       coordinates.toSeq
     }
   }

@@ -9,19 +9,27 @@ import scala.util.Random
   * Created by Jordi on 29-1-2017.
   */
 object PolygonGenerator {
-  def generatePolygonInSquare(pointGenerator: Int => () => IndexedSeq[Point], polygonGenerator: Set[Point] => IndexedSeq[Point])(n: Int): () => IndexedSeq[Point] = { () =>
-    val innerPoints = Point(1, 2) +: Point(2, 1) +: (pointGenerator(n - 6)() map (_ + Vector2D(2, 2)))
-    val p1 = Point(2, 2)
+
+  // TODO new generator in square with 2 polygons from points 1,1 and n,n
+
+  def generatePolygonInSquare(pointGenerator: Int => Set[Point], polygonGenerator: Set[Point] => IndexedSeq[Point])(n: Int): () => IndexedSeq[Point] = { () =>
+    val innerPoints = (pointGenerator(n - 5) map (_ + Vector2D(1, 1))) + Point(1, 2) + Point(2, 1)
     val p2 = Point(1, n - 1)
     val p3 = Point(n, n)
     val p4 = Point(n - 1, 1)
 
     val innerPolygon = polygonGenerator(innerPoints.toSet).map(p => p + Vector2D(2, 2)) // TODO: This makes assumptions on the order of the points here (head being (2,1) and last (1,2))
-    if (innerPolygon.contains(p1)) println(s"inner contains p1")
+    require(innerPolygon.head == Point(3, 2))
+    require(innerPolygon.last == Point(2, 3))
+
     if (innerPolygon.contains(p2)) println(s"inner contains p2")
     if (innerPolygon.contains(p3)) println(s"inner contains p3")
     if (innerPolygon.contains(p4)) println(s"inner contains p4")
-    val result = innerPolygon.head +: p1 +: p2 +: p3 +: p4 +: innerPolygon.tail
+    val result = innerPolygon.head +: p2 +: p3 +: p4 +: innerPolygon.tail
+    require(result.size == n, s"Size of generated polygon incorrect: actual size ${result.size}, expected: $n")
+    require(result.map(_.x).distinct.size == n, s"duplicate x coordinates (${result.map(_.x).diff(result.map(_.x).distinct)}) used in $result")
+    require(result.map(_.y).distinct.size == n, s"duplicate y coordinates (${result.map(_.y).diff(result.map(_.y).distinct)}) used in $result")
+    require(!Polygon(result).isSelfIntersecting, s"Generated polygon is self intersecting: $result")
     result
   }
 
@@ -38,6 +46,9 @@ object PolygonGenerator {
     if (innerPolygon.contains(p3)) println(s"inner contains p3")
     if (innerPolygon.contains(p4)) println(s"inner contains p4")
     val result = innerPolygon.head +: p1 +: p2 +: p3 +: p4 +: innerPolygon.tail
+    require(result.size == n, s"Size of generated polygon incorrect: actual size ${result.size}, expected: $n")
+    require(result.map(_.x).distinct.size == n, s"duplicate x coordinates (${result.map(_.x).diff(result.map(_.x).distinct)}) used in $result")
+    require(result.map(_.y).distinct.size == n, s"duplicate y coordinates (${result.map(_.y).diff(result.map(_.y).distinct)}) used in $result")
     require(!Polygon(result).isSelfIntersecting, s"Generated polygon is self intersecting: $result")
     result
   }
@@ -76,8 +87,39 @@ object PolygonGenerator {
     val rightPointsSorted = topPoints.toIndexedSeq.sortBy(p => -p.x)
 
     val result = leftPointsSorted ++ rightPointsSorted
+    require(result.size == n, s"Size of generated polygon incorrect: actual size ${result.size}, expected: $n")
+    require(result.map(_.x).distinct.size == n, s"duplicate x coordinates (${result.map(_.x).diff(result.map(_.x).distinct)}) used in $result")
+    require(result.map(_.y).distinct.size == n, s"duplicate y coordinates (${result.map(_.y).diff(result.map(_.y).distinct)}) used in $result")
+    require(!Polygon(result).isSelfIntersecting, s"Generated polygon is self intersecting: $result")
+    result
+  }
 
-    if (result.map(_.x).distinct.size != n || result.map(_.y).distinct.size != n) println(s"duplicate coordinates used")
+  def generateReverseStarPolygon(pointGenerator: Int => Set[Point]): Int => IndexedSeq[Point] = { n =>
+    val r = Point(n, n)
+    val p1 = Point(1, 2)
+    val p2 = Point(2, 1)
+    val points = pointGenerator(n - 3).map(p => p + Vector2D(2, 2)) + r + p1 + p2
+    var bottomPoints = Set.empty[Point]
+    var topPoints = Set.empty[Point]
+    for (p <- points) {
+      val sign = Math.signum((n - 1) * (p.y - 1) - (n - 1) * (p.x - 1))
+      if (sign < 0) bottomPoints += p
+      else topPoints += p
+    }
+
+    //    val leftPointsSorted = bottomPoints.toIndexedSeq.sortBy(p => p.x.toDouble / (n - p.y))
+    //    val rightPointsSorted = topPoints.toIndexedSeq.sortBy(p => -p.x)
+    val leftPointsSorted = bottomPoints.toIndexedSeq.sortWith((p1, p2) =>
+      (p1.x * (n - p2.y) < p2.x * (n - p1.y)) ||
+        ((p1.x * (n - p2.y) == p2.x * (n - p1.y)) && (n - p1.x) * (n - p1.x) + p1.y * p1.y < (n - p2.x) * (n - p2.x) + p2.y * p2.y))
+    val rightPointsSorted = topPoints.toIndexedSeq.sortWith((p1, p2) =>
+      (p1.x * (n - p2.y) < p2.x * (n - p1.y)) ||
+        ((p1.x * (n - p2.y) == p2.x * (n - p1.y)) && (n - p1.y) * (n - p1.y) + p1.x * p1.x > (n - p2.y) * (n - p2.y) + p2.x * p2.x))
+
+    val result = leftPointsSorted ++ rightPointsSorted.reverse
+    require(result.size == n, s"Size of generated polygon incorrect: actual size ${result.size}, expected: $n")
+    require(result.map(_.x).distinct.size == n, s"duplicate x coordinates (${result.map(_.x).diff(result.map(_.x).distinct)}) used in $result")
+    require(result.map(_.y).distinct.size == n, s"duplicate y coordinates (${result.map(_.y).diff(result.map(_.y).distinct)}) used in $result")
     require(!Polygon(result).isSelfIntersecting, s"Generated polygon is self intersecting: $result")
     result
   }
@@ -207,14 +249,11 @@ object PolygonGenerator {
     result
   }
 
-  // TODO Generates a polygon by starting with a triangle and then adding new points, while maintaining the invariants
+  def triangleBasedGenerator(pointGenerator: Int => Set[Point], seed: Int = Random.nextInt()): Int => IndexedSeq[Point] = { n =>
+    val points = pointGenerator(n - 2) map (p => Point(p.x + 2, p.y + 2))
 
-  def triangleBasedGenerator(points: Set[Point], seed: Int = Random.nextInt()): IndexedSeq[Point] = {
-    val random = new Random(seed)
-    val n = points.size
-
-    val first = points.minBy(p => (2 * p.x - n) * (2 * p.x - n) + (2 * p.y - n) * (2 * p.y - n))
-    val second = (points - first).minBy(p => (p.x - first.x) * (p.x - first.x) + (p.y - first.y) * (p.y - first.y))
+    val first = Point(2, 1)
+    val second = Point(1, 2)
 
     def dist(p1: Point, p2: Point) = (p2 - p1).squareLength
     /**
@@ -248,7 +287,6 @@ object PolygonGenerator {
         } yield p
         val ((index, _), point) = potentialNextPoints map (p => (selectIndexToInject(p, currentPolygon), p)) minBy (_._1._2)
         val newPartialPolygon = PartialPolygon(currentPoints.take(index) ++ (point +: currentPoints.drop(index)))
-        println(s"recursion with remainingPoints size = ${remainingPoints.size}")
         expandPartialPolygon(newPartialPolygon, remainingPoints - point)
       }
     }
@@ -264,7 +302,7 @@ object PolygonGenerator {
   case class PartialPolygon(points: IndexedSeq[Point]) {
     lazy val edges: Seq[LineSegment] = (points zip (points.tail :+ points.head)).map { case (p1, p2) => LineSegment(p1, p2) }.toSeq
 
-    def intersects(edge: LineSegment) = !edges.forall(ls => !(ls intersects edge) || (ls.contains(edge.p1) || ls.contains(edge.p2) ))
+    def intersects(edge: LineSegment) = !edges.forall(ls => !(ls intersects edge) || (ls.contains(edge.p1) || ls.contains(edge.p2)))
   }
 
 }

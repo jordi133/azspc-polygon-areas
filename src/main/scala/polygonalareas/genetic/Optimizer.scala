@@ -42,11 +42,11 @@ class Optimizer(
         val newBestPolygon = validPolygons.minBy { pol => -sortSign * doubleSurface(pol.points) }
         val newBestScore = newBestPolygon.score
         val improvement = if (bestScore == -1) newBestScore else (newBestScore - bestScore) * sortSign
+        bestScore = newBestScore
         if (improvement > 0) {
           actionOnFound(newBestPolygon.points)
-          bestScore = newBestScore
         }
-        println(s"n: $n ${if (maximize) "max" else "min"}, families alive: ${families.size}, fam rev left: ${Math.max(0, familyRevitalizations - familiesDied)}, round $count: newPop size = ${families.values.flatMap(_.pop).size}, bestScore = $bestScore, previousBest: $previousBest, diff with best ever: ${Math.abs(bestScore - previousBest)}")
+        println(s"n: $n ${if (maximize) "max" else "min"}, families alive: ${families.size}, fam rev left: ${Math.max(0, familyRevitalizations - familiesDied)}, round $count: newPop size = ${families.values.flatMap(_.pop).size}, bestScore = $newBestScore, previousBest: $previousBest, diff with best ever: ${Math.abs(bestScore - previousBest)}")
       } else if (families.values.flatMap(_.pop).nonEmpty) {
         val parallelEdges = families.values.map(_.leastParEdges)
         println(s"n: $n ${if (maximize) "max" else "min"}, round $count: newPop size = ${families.values.flatMap(_.pop).size}, min parallel edges: ${parallelEdges.min}")
