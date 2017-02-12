@@ -18,7 +18,7 @@ class Optimizer(
   implicit val random = new Random(seed)
 
   def optimizeFromPolygon(polygonGenerator: (Int) => IndexedSeq[Point], n: Int, maximize: Boolean)
-                         (actionOnFound: IndexedSeq[Point] => Unit) = {
+                         (actionOnFound: IndexedSeq[Point] => Unit, actionWithBest: IndexedSeq[Point] => Unit = _ => ()) = {
     val sortSign = if (maximize) 1 else -1
     //    var families: Map[Int, IndexedSeq[Polygon]] = (0 until nrOfFamilies map (i => (i, IndexedSeq(Polygon(polygonGenerator(n)))))).toMap
     var families: Map[Int, Family] = (0 until nrOfFamilies map (i => (i, Family(IndexedSeq(Polygon(polygonGenerator(n))))))).toMap
@@ -37,6 +37,7 @@ class Optimizer(
       // max family size, then fill up with some of the previous generation
       families = families.map { case (i, fam) => i -> fam.nextGen(sortSign) }
 
+      families.values.flatMap(_.pop).headOption.foreach(polygon => actionWithBest(polygon.points))
       val validPolygons = families.values.flatMap(_.validPolygons)
       if (validPolygons.nonEmpty) {
         val newBestPolygon = validPolygons.minBy { pol => -sortSign * doubleSurface(pol.points) }
@@ -55,6 +56,7 @@ class Optimizer(
       for ((index, family) <- families) {
         if (family.generationsWithoutImprovement >= maxRoundsWithoutImprovement || family.pop.isEmpty) {
           familiesDied += 1
+          println(s"Familty died with leader: ${family.pop.headOption}")
           if (familyRevitalizations > familiesDied) {
             val newPolygon = Polygon(polygonGenerator(n))
             families = families.updated(index, Family(Vector(newPolygon)))
@@ -89,24 +91,4 @@ class Optimizer(
       Family(newPop, newGenerationsWithoutImprovement)
     }
   }
-
-  /**
-    * Returns new generation of families, sorted with best on head position
-    *
-    * @return
-    */
-//  def nextGenForFamilies(families: Map[Int, IndexedSeq[Polygon]], sortSign: Int): Map[Int, IndexedSeq[Polygon]] = {
-//    def familySelection(pop: Seq[Polygon]): IndexedSeq[Polygon] =
-//      pop.toIndexedSeq.sortBy(pol => (-pol.angles.values.size, -sortSign * doubleSurface(pol.points))).take(familySize)
-//
-//    val newPop = families map { case (index, pop) => (index, familySelection(pop.par.flatMap(_.nextGen(maxOffSpring)).seq)) }
-//
-//    // adjust families so that the new generation is represented as much as possible. If size of new generation is smaller than
-//    // max family size, then fill up with some of the previous generation
-//    val newFamilies = newPop.map { case (index, pop) => (index, pop ++ families(index).take(familySize - pop.size)) }
-//
-//    newFamilies
-//  }
-
-
 }

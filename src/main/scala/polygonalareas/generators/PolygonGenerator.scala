@@ -33,7 +33,7 @@ object PolygonGenerator {
     result
   }
 
-  def generatePolygonInSquare(polygonGenerator: Int => IndexedSeq[Point]): (Int) => IndexedSeq[Point] = { (n) =>
+  def generatePolygonInSquare(polygonGenerator: Int => IndexedSeq[Point]): (Int) => IndexedSeq[Point] = { n =>
     val innerPoints = Point(1, 2) +: Point(2, 1) +: (polygonGenerator(n - 6) map (_ + Vector2D(2, 2)))
     val p1 = Point(2, 2)
     val p2 = Point(1, n - 1)
@@ -41,11 +41,29 @@ object PolygonGenerator {
     val p4 = Point(n - 1, 1)
 
     val innerPolygon = innerPoints.map(p => p + Vector2D(2, 2)) // TODO: This makes assumptions on the order of the points here (head being (2,1) and last (1,2))
-    if (innerPolygon.contains(p1)) println(s"inner contains p1")
-    if (innerPolygon.contains(p2)) println(s"inner contains p2")
-    if (innerPolygon.contains(p3)) println(s"inner contains p3")
-    if (innerPolygon.contains(p4)) println(s"inner contains p4")
-    val result = innerPolygon.head +: p1 +: p2 +: p3 +: p4 +: innerPolygon.tail
+  val result = innerPolygon.head +: p1 +: p2 +: p3 +: p4 +: innerPolygon.tail
+    require(result.size == n, s"Size of generated polygon incorrect: actual size ${result.size}, expected: $n")
+    require(result.map(_.x).distinct.size == n, s"duplicate x coordinates (${result.map(_.x).diff(result.map(_.x).distinct)}) used in $result")
+    require(result.map(_.y).distinct.size == n, s"duplicate y coordinates (${result.map(_.y).diff(result.map(_.y).distinct)}) used in $result")
+    require(!Polygon(result).isSelfIntersecting, s"Generated polygon is self intersecting: $result")
+    result
+  }
+
+  def generateTwoPolygonsInSquare(polygonGenerator: Int => IndexedSeq[Point]): (Int) => IndexedSeq[Point] =
+    generateTwoPolygonsInSquare(polygonGenerator, polygonGenerator)
+
+  def generateTwoPolygonsInSquare(polygonGenerator1: Int => IndexedSeq[Point], polygonGenerator2: Int => IndexedSeq[Point]): (Int) => IndexedSeq[Point] = { n =>
+    val polygon1Size = (n - 2) / 2
+    val polygon2Size = (n - 2) - polygon1Size
+    val polygon1 = polygonGenerator1(polygon1Size) map (p => Point(p.x + 1, p.y + 1))
+    val polygon2 = polygonGenerator2(polygon2Size).tail.reverse.tail.reverse map (p => Point(n - p.x, n - p.y))
+
+    val p1 = Point(n, 1)
+    val p2 = Point(n - 1, n - 2)
+    val p3 = Point(n - 2, n)
+    val p4 = Point(1, n - 1)
+
+    val result = polygon1 ++ (p4 +: p3 +: polygon2) ++ IndexedSeq(p2, p1)
     require(result.size == n, s"Size of generated polygon incorrect: actual size ${result.size}, expected: $n")
     require(result.map(_.x).distinct.size == n, s"duplicate x coordinates (${result.map(_.x).diff(result.map(_.x).distinct)}) used in $result")
     require(result.map(_.y).distinct.size == n, s"duplicate y coordinates (${result.map(_.y).diff(result.map(_.y).distinct)}) used in $result")
@@ -249,21 +267,14 @@ object PolygonGenerator {
     result
   }
 
-  def triangleBasedGenerator(pointGenerator: Int => Set[Point], seed: Int = Random.nextInt()): Int => IndexedSeq[Point] = { n =>
-    val points = pointGenerator(n - 2) map (p => Point(p.x + 2, p.y + 2))
+  def triangleBasedGeneratorSurfaceBased(pointGenerator: Int => Set[Point], seed: Int = Random.nextInt()): Int => IndexedSeq[Point] = { n =>
 
-    val first = Point(2, 1)
-    val second = Point(1, 2)
-
-    def dist(p1: Point, p2: Point) = (p2 - p1).squareLength
     /**
       * Returns a tuple of (index, surfaceIncrease) that indicates the index
       *
-      * @param point
-      * @param currentPolygon
       * @return
       */
-    def selectIndexToInject(point: Point, currentPolygon: PartialPolygon): (Int, Int) = {
+    def selectIndexToInject: (Point, PartialPolygon) => (Int, Int) = { (point, currentPolygon) =>
       // edges are safe if connecting 'point' to it does not create intersections
       val safeEdges = currentPolygon.edges.filter { edge =>
         val newEdge1 = LineSegment(edge.p1, point)
@@ -277,6 +288,40 @@ object PolygonGenerator {
       ((indexOfEdge + 1) % n, surface)
     }
 
+    triangleBasedGeneratorGeneric(pointGenerator, seed, selectIndexToInject)(n)
+  }
+
+  def triangleBasedGeneratorSqrPeripheryBased(pointGenerator: Int => Set[Point], seed: Int = Random.nextInt()): Int => IndexedSeq[Point] = { n =>
+    /**
+      * Returns a tuple of (index, surfaceIncrease) that indicates the index
+      *
+      * @return
+      */
+    def selectIndexToInject: (Point, PartialPolygon) => (Int, Int) = { (point, currentPolygon) =>
+      // edges are safe if connecting 'point' to it does not create intersections
+      val safeEdges = currentPolygon.edges.filter { edge =>
+        val newEdge1 = LineSegment(edge.p1, point)
+        val newEdge2 = LineSegment(edge.p2, point)
+        !(currentPolygon intersects newEdge1) && !(currentPolygon intersects newEdge2)
+      }
+      if (safeEdges.isEmpty) println(s"point:$point, pointsToPlace: ${n - currentPolygon.points.size}, currentPolygon:$currentPolygon")
+      val edgeToInjectAt = safeEdges.minBy(ls => ((point - ls.p1).squareLength + (point - ls.p2).squareLength) / (ls.p1 - ls.p2).squareLength)
+      val indexOfEdge = currentPolygon.points.indexOf(edgeToInjectAt.p1)
+      val periphery = (point - edgeToInjectAt.p1).squareLength + (point - edgeToInjectAt.p2).squareLength
+      ((indexOfEdge + 1) % n, periphery)
+    }
+
+    triangleBasedGeneratorGeneric(pointGenerator, seed, selectIndexToInject)(n)
+  }
+
+  def triangleBasedGeneratorGeneric(pointGenerator: Int => Set[Point], seed: Int = Random.nextInt(), selectionMethod: (Point, PartialPolygon) => (Int, Int)): Int => IndexedSeq[Point] = { n =>
+    val points = pointGenerator(n - 2) map (p => Point(p.x + 2, p.y + 2))
+
+    val first = Point(2, 1)
+    val second = Point(1, 2)
+
+    def dist(p1: Point, p2: Point) = (p2 - p1).squareLength
+
     def expandPartialPolygon(currentPolygon: PartialPolygon, remainingPoints: Set[Point]): IndexedSeq[Point] = {
       if (remainingPoints.isEmpty) {
         currentPolygon.points
@@ -285,7 +330,7 @@ object PolygonGenerator {
         val potentialNextPoints = for {
           p <- remainingPoints if !(remainingPoints - p).exists(rp => currentPoints.forall(cp => dist(rp, cp) <= dist(p, cp)))
         } yield p
-        val ((index, _), point) = potentialNextPoints map (p => (selectIndexToInject(p, currentPolygon), p)) minBy (_._1._2)
+        val ((index, _), point) = potentialNextPoints map (p => (selectionMethod(p, currentPolygon), p)) minBy (_._1._2)
         val newPartialPolygon = PartialPolygon(currentPoints.take(index) ++ (point +: currentPoints.drop(index)))
         expandPartialPolygon(newPartialPolygon, remainingPoints - point)
       }
@@ -302,7 +347,7 @@ object PolygonGenerator {
   case class PartialPolygon(points: IndexedSeq[Point]) {
     lazy val edges: Seq[LineSegment] = (points zip (points.tail :+ points.head)).map { case (p1, p2) => LineSegment(p1, p2) }.toSeq
 
-    def intersects(edge: LineSegment) = !edges.forall(ls => !(ls intersects edge) || (ls.contains(edge.p1) || ls.contains(edge.p2)))
+    def intersects(edge: LineSegment) = edges.exists(ls => (ls intersects edge) && !(ls contains edge.p1) && !(ls contains edge.p2))
   }
 
 }

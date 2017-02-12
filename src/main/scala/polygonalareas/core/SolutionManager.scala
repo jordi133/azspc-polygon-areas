@@ -14,7 +14,7 @@ import scala.util.Try
   * Object keeps track of solutions, saving candidate solutions if they are better than what has been found so far
   */
 object SolutionManager {
-  val filename = "solutions-polygonfixer.txt"
+  val filename = "solutions.txt"
   val bestScoresFilename = "best-raw-scores.txt"
 
   var polygons: Map[Int, (Option[Seq[Point]], Option[Seq[Point]])] = {

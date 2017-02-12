@@ -16,7 +16,8 @@ object Mutater {
     Seq(index1, index2)
   }
 
-  def getIndicesToMutate(n: Int, maxOffSpring: Int, indexOfParallelEdge: Int)(implicit random: Random): Seq[Seq[Int]] = {
+  def getIndicesToMutate(n: Int, maxOffSpring: Int, indexOfParallelEdge: Int, indicesToIgnore: Set[Int] = Set.empty)(implicit random: Random): Seq[Seq[Int]] = {
+    val possibleIndices = (1 to n) diff (indicesToIgnore.toSeq)
     def randomIndex: Int = {
       val randomIndex1Try = random.nextInt(n - 2)
       if (randomIndex1Try == indexOfParallelEdge) n - 2
