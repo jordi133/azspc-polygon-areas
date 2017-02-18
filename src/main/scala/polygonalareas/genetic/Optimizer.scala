@@ -76,19 +76,27 @@ class Optimizer(
     lazy val validPolygons = pop.filter(_.isValid)
 
     def nextGen(sortSign: Int): Family = {
-      def familySelection(pop: Seq[Polygon]): IndexedSeq[Polygon] =
-        pop.toIndexedSeq.sortBy(pol => (pol.parEdges, -sortSign * doubleSurface(pol.points))).take(familySize)
+      def familySelection(newPop: Seq[Polygon]): IndexedSeq[Polygon] =
+        (pop.head +: newPop).toIndexedSeq.sortBy(pol => (pol.parEdges, -sortSign * doubleSurface(pol.points))).take(familySize)
       def isScoreImprovement(sortSign: Int, oldScore: Int, newScore: Int): Boolean = (newScore - oldScore) * sortSign > 0
 
-      val newGeneration = familySelection(pop.par.flatMap(_.nextGen(maxOffSpring)).seq)
+      val newGeneration = familySelection(getNewGeneration)
       val newPop = newGeneration ++ pop.take(familySize - newGeneration.size)
 
       val improvement =
         if (leastParEdges > 0) newPop.head.parEdges < leastParEdges
-        else isScoreImprovement(sortSign, pop.head.score, newPop.head.score)
+        else newPop.head.parEdges == 0 && isScoreImprovement(sortSign, pop.head.score, newPop.head.score)
 
       val newGenerationsWithoutImprovement = if (improvement) 0 else generationsWithoutImprovement + 1
       Family(newPop, newGenerationsWithoutImprovement)
     }
+
+    def getNewGeneration: Seq[Polygon] =
+//      if (generationsWithoutImprovement > 2 * maxRoundsWithoutImprovement / 3 && leastParEdges == 0) {
+//        println(s"nextGenBeforeDeath")
+//        pop.par.flatMap(_.nextGenBeforeDeath(maxOffSpring)).seq
+//      } else {
+        pop.par.flatMap(_.nextGen(maxOffSpring)).seq
+//      }
   }
 }

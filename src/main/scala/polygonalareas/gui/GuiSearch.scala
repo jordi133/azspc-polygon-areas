@@ -59,26 +59,28 @@ object GuiSearch extends JFXApp {
     }
 
     def pg1: Int => Set[Point] = n => PointGenerator.generateRandomPoints()(n)
-    def pg2: Int => Set[Point] = n => PointGenerator.generateCrossPoints((1.5 * Math.pow(n, 0.5)).toInt)(n)
-    def pg3: Int => Set[Point] = n => PointGenerator.generateDiagonalPoints((1.5 * Math.pow(n, 0.5)).toInt)(n)
-    def pointGenerator: Int => Set[Point] = n => PointGenerator.combine(pg2, pg3)(n)
-    //      def polygonGeneratorMin = PolygonGenerator.generateReverseStarPolygon(pointGenerator)
+    def pg2: Int => Set[Point] = n => PointGenerator.generateCrossPoints((1.5 * Math.pow(n, 0.75)).toInt)(n)
+    def pg3: Int => Set[Point] = n => PointGenerator.generateDiagonalPoints((1.5 * Math.pow(n, 0.75)).toInt)(n)
+    def pointGenerator: Int => Set[Point] = n => pg3(n)//PointGenerator.combine(pg2, pg3)(n)
+//    def pointGenerator: Int => Set[Point] = PointGenerator.combineVertical(pg3, PointGenerator.inverseX(pg3))
+//          def polygonGeneratorMin = PolygonGenerator.generateReverseStarPolygon(pointGenerator)
 //          def polygonGeneratorMin = PolygonGenerator.generateWedgePolygon(pointGenerator)
-    def polygonGeneratorMin = PolygonGenerator.triangleBasedGeneratorSqrPeripheryBased(pointGenerator)
-    def polygonGeneratorMax = PolygonGenerator.generateTwoPolygonsInSquare(polygonGeneratorMin)
-    //      def polygonGeneratorMax = PolygonGenerator.generatePolygonInSquare(polygonGeneratorMin)
+    def polygonGeneratorMin = PolygonGenerator.triangleBasedGeneratorSurfaceBased(pointGenerator)
+//    def polygonGeneratorMax = PolygonGenerator.generateTwoPolygonsInSquare(polygonGeneratorMin)
+          def polygonGeneratorMax = PolygonGenerator.generatePolygonInSquare(polygonGeneratorMin)
     for (i <- 1 to 1000) {
-      val sizes = SolutionManager.opportunities.filter(_ < 150)
+      val sizes = SolutionManager.opportunities.filter(_ > 10).reverse
+//      val sizes = SolutionManager.opportunities//.filter(_ < 150)
       val n = sizes(Math.min(rollExponential(), sizes.length - 1))
       val optimizer = new Optimizer(
-        maxRoundsWithoutImprovement = 4 * (50 - Math.sqrt(n)).toInt,
+        maxRoundsWithoutImprovement = (75 - Math.sqrt(n)).toInt,
         familyRevitalizations = 0,
-        familySize = 15,
+        familySize = 10,
         nrOfFamilies = 1,
-        maxOffSpring = 25
+        maxOffSpring = 30
       )
-      optimizer.optimizeFromPolygon(polygonGeneratorMax, n, true)(actionOnFoundMax, actionWithBest(true))
-      optimizer.optimizeFromPolygon(polygonGeneratorMin, n, false)(actionOnFoundMin, actionWithBest(false))
+      Try(optimizer.optimizeFromPolygon(polygonGeneratorMax, n, true)(actionOnFoundMax, actionWithBest(true)))
+      Try(optimizer.optimizeFromPolygon(polygonGeneratorMin, n, false)(actionOnFoundMin, actionWithBest(false)))
 
     }
 

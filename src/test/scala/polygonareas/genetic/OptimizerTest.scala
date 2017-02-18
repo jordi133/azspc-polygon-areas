@@ -75,9 +75,10 @@ class OptimizerTest extends WordSpec {
       //      def pointGenerator: Int => Set[Point] = n => PointGenerator.combine(pg1, pg2)(n)
       def pg1: Int => Set[Point] = n => PointGenerator.generateRandomPoints()(n)
       def pg2: Int => Set[Point] = n => PointGenerator.generateCrossPoints((1.5 * Math.pow(n, 0.6)).toInt)(n)
-      def pg3: Int => Set[Point] = n => PointGenerator.generateDiagonalPoints((1.5 * Math.pow(n, 0.2)).toInt)(n)
-      def pointGenerator: Int => Set[Point] = n => PointGenerator.combine(PointGenerator.combine(pg1, pg2), pg3)(n)
-      def polygonGeneratorMin = PolygonGenerator.triangleBasedGeneratorSqrPeripheryBased(pg2)//pointGenerator)
+      def pg3: Int => Set[Point] = n => PointGenerator.generateDiagonalPoints((1.5 * Math.pow(n, 0.5)).toInt)(n)
+      def pointGenerator: Int => Set[Point] = PointGenerator.combineVertical(pg3, PointGenerator.inverseX(pg3))
+//      def pointGenerator: Int => Set[Point] = pg3//n => PointGenerator.combine(PointGenerator.combine(pg1, pg2), pg3)(n)
+      def polygonGeneratorMin = PolygonGenerator.triangleBasedGeneratorSqrPeripheryBased(pointGenerator)//pointGenerator)
 //      def polygonGeneratorMin = PolygonGenerator.triangleBasedGeneratorSqrPeripheryBased(pointGenerator)
       //      def polygonGeneratorMax = PolygonGenerator.generatePolygonInSquare(PolygonGenerator.generateReverseStarPolygon(pointGenerator))
       //      def polygonGeneratorMin = PolygonGenerator.generateReverseStarPolygon(pointGenerator)
@@ -86,14 +87,14 @@ class OptimizerTest extends WordSpec {
       def polygonGeneratorMax = PolygonGenerator.generateTwoPolygonsInSquare(polygonGeneratorMin)
 //      def polygonGeneratorMax = PolygonGenerator.generatePolygonInSquare(polygonGeneratorMin)
       for (i <- 1 to 1000) {
-        val sizes = SolutionManager.opportunities.filter(_ < 150)
+        val sizes = SolutionManager.opportunities.filter(_ < 250)
         val n = sizes(Math.min(rollExponential(), sizes.length - 1))
         val optimizer = new Optimizer(
-          maxRoundsWithoutImprovement = 2 * (75 - Math.sqrt(n)).toInt,
+          maxRoundsWithoutImprovement = 2 * (50 - Math.sqrt(n)).toInt,
           familyRevitalizations = 0,
-          familySize = 25,
+          familySize = 15,
           nrOfFamilies = 1,
-          maxOffSpring = 50
+          maxOffSpring = 25
         )
         Try(optimizer.optimizeFromPolygon(polygonGeneratorMax, n, true)(actionOnFound))
         Try(optimizer.optimizeFromPolygon(polygonGeneratorMin, n, false)(actionOnFound))

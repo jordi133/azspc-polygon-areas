@@ -88,6 +88,23 @@ object PolygonGenerator {
     (l +: leftPointsSorted) ++ (r +: rightPointsSorted)
   }
 
+  def generateVWedge(pointGenerator: Int => Set[Point]): Int => IndexedSeq[Point] = { n =>
+    val first = generateWedgePolygon(pointGenerator)(n % 2 + n / 2 - 2)
+    val second = generateWedgePolygon(pointGenerator)(n / 2)
+
+    val (firstPart1, firstPart2) = first partition (p => p.y <= p.x)
+    val firstPart1Mapped = firstPart1 map (p => Point(2 * p.x - 1, p.y))
+    val firstPart2Mapped = Point(n, n / 2) +: (firstPart2 map (p => Point(2 * p.x - 1, p.y)))
+    val secondMapped = Point(n - 2, n / 2 + 1) +: (second map (p => Point(n + 1 - 2 * p.x, p.y + n / 2 + 1)))
+
+    val result = firstPart1Mapped ++ secondMapped ++ firstPart2Mapped
+    require(result.size == n, s"Size of generated polygon incorrect: actual size ${result.size}, expected: $n")
+    require(result.map(_.x).distinct.size == n, s"duplicate x coordinates (${result.map(_.x).diff(result.map(_.x).distinct)}) used in $result")
+    require(result.map(_.y).distinct.size == n, s"duplicate y coordinates (${result.map(_.y).diff(result.map(_.y).distinct)}) used in $result")
+    require(!Polygon(result).isSelfIntersecting, s"Generated polygon is self intersecting: $result")
+    result
+  }
+
   def generateWedgePolygon(pointGenerator: Int => Set[Point]): Int => IndexedSeq[Point] = { n =>
     val r = Point(n, n)
     val p1 = Point(1, 2)
@@ -292,6 +309,7 @@ object PolygonGenerator {
   }
 
   def triangleBasedGeneratorSqrPeripheryBased(pointGenerator: Int => Set[Point], seed: Int = Random.nextInt()): Int => IndexedSeq[Point] = { n =>
+
     /**
       * Returns a tuple of (index, surfaceIncrease) that indicates the index
       *
@@ -307,7 +325,7 @@ object PolygonGenerator {
       if (safeEdges.isEmpty) println(s"point:$point, pointsToPlace: ${n - currentPolygon.points.size}, currentPolygon:$currentPolygon")
       val edgeToInjectAt = safeEdges.minBy(ls => ((point - ls.p1).squareLength + (point - ls.p2).squareLength) / (ls.p1 - ls.p2).squareLength)
       val indexOfEdge = currentPolygon.points.indexOf(edgeToInjectAt.p1)
-      val periphery = (point - edgeToInjectAt.p1).squareLength + (point - edgeToInjectAt.p2).squareLength
+      val periphery = ((point - edgeToInjectAt.p1).squareLength + (point - edgeToInjectAt.p2).squareLength).toInt
       ((indexOfEdge + 1) % n, periphery)
     }
 

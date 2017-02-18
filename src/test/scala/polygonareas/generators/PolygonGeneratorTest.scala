@@ -89,6 +89,21 @@ class PolygonGeneratorTest extends WordSpec{
       println(pg)
     }
   }
+  "generateVWedge" should {
+    "generate a valid polygon with PointGenerator.generateRandomPoints for n=105" in {
+      val pg = PolygonGenerator.generateVWedge(PointGenerator.generateRandomPoints())(105)
+      println(pg)
+    }
+    "generate a valid polygon in a square for n=105" in {
+      val pg = PolygonGenerator.generatePolygonInSquare(PolygonGenerator.generateVWedge(PointGenerator.generateRandomPoints()))(105)
+      println(pg)
+    }
+    "generate a valid polygon with combine for n=105" in {
+      def pointGenerator: Int => Set[Point] = n => PointGenerator.generateDiagonalPoints((1.5 * Math.pow(n, 0.5)).toInt)(n)
+      val pg = PolygonGenerator.generateVWedge(pointGenerator)(105)
+      println(pg)
+    }
+  }
   "generateTwoPolygonsInSquare" should {
     "generate a valid polygon with triangleBasedGeneratorSqrPeripheryBased for n=105" in {
       val pg = PolygonGenerator.generateTwoPolygonsInSquare(PolygonGenerator.triangleBasedGeneratorSqrPeripheryBased(PointGenerator.generateRandomPoints()))(105)

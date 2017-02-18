@@ -112,4 +112,21 @@ object PointGenerator {
     result
   }
 
+  def combineVertical(pg1: Int => Set[Point], pg2: Int => Set[Point]): Int => Set[Point] = { n =>
+    val points2Size = n / 2
+    val points1Size = n - points2Size
+
+    val points1 = pg1(points1Size)
+    val points2 = pg2(points2Size)
+    val points1Mapped = points1.map(p => Point(2 * p.x - 1, p.y))
+    val points2Mapped = points2.map(p => Point(2 * p.x, p.y + points1Size))
+    val result  =  points1Mapped ++ points2Mapped
+    require(result.map(_.x).size == n, s"duplicate x coordinate in $result")
+    require(result.map(_.y).size == n, s"duplicate y coordinate in $result")
+    result
+  }
+
+  def inverseX(pg: Int => Set[Point]): Int => Set[Point] = { n =>
+    pg(n) map (p => Point(n + 1 - p.x, p.y))
+  }
 }
