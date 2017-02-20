@@ -17,10 +17,55 @@ class Optimizer(
                  seed: Int = Random.nextInt()) {
   implicit val random = new Random(seed)
 
-  def optimizeFromPolygon(polygonGenerator: (Int) => IndexedSeq[Point], n: Int, maximize: Boolean)
+  def optimiseFromPolygon(polygon: Polygon, maximize: Boolean)
                          (actionOnFound: IndexedSeq[Point] => Unit, actionWithBest: IndexedSeq[Point] => Unit = _ => ()) = {
     val sortSign = if (maximize) 1 else -1
-    //    var families: Map[Int, IndexedSeq[Polygon]] = (0 until nrOfFamilies map (i => (i, IndexedSeq(Polygon(polygonGenerator(n)))))).toMap
+    val n = polygon.size
+    var families = Map(0 -> Family(Seq(polygon)))
+    var familiesDied = 0
+    var bestScore = -1
+    var count = 0
+    val previousBest = (if (maximize) SolutionManager.getMaxSolution(n) else SolutionManager.getMinSolution(n)) match {
+      case Some(polygon) => doubleSurface(polygon)
+      case _ => -1
+    }
+
+    while (families.values.flatMap(_.pop).nonEmpty && count < 15000) {
+      count += 1
+
+      // adjust families so that the new generation is represented as much as possible. If size of new generation is smaller than
+      // max family size, then fill up with some of the previous generation
+      families = families.map { case (i, fam) => i -> fam.nextGen(sortSign) }
+
+      families.values.flatMap(_.pop).headOption.foreach(polygon => actionWithBest(polygon.points))
+      val validPolygons = families.values.flatMap(_.validPolygons)
+      if (validPolygons.nonEmpty) {
+        val newBestPolygon = validPolygons.minBy { pol => -sortSign * doubleSurface(pol.points) }
+        val newBestScore = newBestPolygon.score
+        val improvement = if (bestScore == -1) newBestScore else (newBestScore - bestScore) * sortSign
+        bestScore = newBestScore
+        if (improvement > 0) {
+          actionOnFound(newBestPolygon.points)
+        }
+        println(s"n: $n ${if (maximize) "max" else "min"}, families alive: ${families.size}, fam rev left: ${Math.max(0, familyRevitalizations - familiesDied)}, round $count: newPop size = ${families.values.flatMap(_.pop).size}, bestScore = $newBestScore, previousBest: $previousBest, diff with best ever: ${Math.abs(bestScore - previousBest)}")
+      } else if (families.values.flatMap(_.pop).nonEmpty) {
+        val parallelEdges = families.values.map(_.leastParEdges)
+        println(s"n: $n ${if (maximize) "max" else "min"}, round $count: newPop size = ${families.values.flatMap(_.pop).size}, min parallel edges: ${parallelEdges.min}")
+      }
+
+      for ((index, family) <- families) {
+        if (family.generationsWithoutImprovement >= maxRoundsWithoutImprovement || family.pop.isEmpty) {
+          familiesDied += 1
+          println(s"Familty died with leader: ${family.pop.headOption}")
+          families = families.filter(_._1 != index)
+        }
+      }
+    }
+  }
+
+  def optimizeFromPolygonGenerator(polygonGenerator: (Int) => IndexedSeq[Point], n: Int, maximize: Boolean)
+                                  (actionOnFound: IndexedSeq[Point] => Unit, actionWithBest: IndexedSeq[Point] => Unit = _ => ()) = {
+    val sortSign = if (maximize) 1 else -1
     var families: Map[Int, Family] = (0 until nrOfFamilies map (i => (i, Family(IndexedSeq(Polygon(polygonGenerator(n))))))).toMap
     var familiesDied = 0
     var bestScore = -1
@@ -92,11 +137,14 @@ class Optimizer(
     }
 
     def getNewGeneration: Seq[Polygon] =
+      pop.par.flatMap(_.nextGen(maxOffSpring * generationsWithoutImprovement))
+        .flatMap(_.nextGen(maxOffSpring * generationsWithoutImprovement)).seq
 //      if (generationsWithoutImprovement > 2 * maxRoundsWithoutImprovement / 3 && leastParEdges == 0) {
-//        println(s"nextGenBeforeDeath")
-//        pop.par.flatMap(_.nextGenBeforeDeath(maxOffSpring)).seq
+//        pop.par.flatMap(_.nextGen(Math.sqrt(maxOffSpring * generationsWithoutImprovement).toInt))
+//          .flatMap(_.nextGen(Math.sqrt(maxOffSpring * generationsWithoutImprovement).toInt)).seq
 //      } else {
-        pop.par.flatMap(_.nextGen(maxOffSpring)).seq
+//        pop.par.flatMap(_.nextGen(maxOffSpring * generationsWithoutImprovement)).seq
 //      }
   }
+
 }

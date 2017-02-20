@@ -323,7 +323,8 @@ object PolygonGenerator {
         !(currentPolygon intersects newEdge1) && !(currentPolygon intersects newEdge2)
       }
       if (safeEdges.isEmpty) println(s"point:$point, pointsToPlace: ${n - currentPolygon.points.size}, currentPolygon:$currentPolygon")
-      val edgeToInjectAt = safeEdges.minBy(ls => ((point - ls.p1).squareLength + (point - ls.p2).squareLength) / (ls.p1 - ls.p2).squareLength)
+      val edgeToInjectAt = safeEdges.minBy(ls => (point - ls.p1).squareLength + (point - ls.p2).squareLength)
+//      val edgeToInjectAt = safeEdges.minBy(ls => ((point - ls.p1).squareLength + (point - ls.p2).squareLength) / (ls.p1 - ls.p2).squareLength)
       val indexOfEdge = currentPolygon.points.indexOf(edgeToInjectAt.p1)
       val periphery = ((point - edgeToInjectAt.p1).squareLength + (point - edgeToInjectAt.p2).squareLength).toInt
       ((indexOfEdge + 1) % n, periphery)

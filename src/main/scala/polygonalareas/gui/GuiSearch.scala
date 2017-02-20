@@ -59,31 +59,37 @@ object GuiSearch extends JFXApp {
     }
 
     def pg1: Int => Set[Point] = n => PointGenerator.generateRandomPoints()(n)
-    def pg2: Int => Set[Point] = n => PointGenerator.generateCrossPoints((1.5 * Math.pow(n, 0.75)).toInt)(n)
-    def pg3: Int => Set[Point] = n => PointGenerator.generateDiagonalPoints((1.5 * Math.pow(n, 0.75)).toInt)(n)
-    def pointGenerator: Int => Set[Point] = n => pg3(n)//PointGenerator.combine(pg2, pg3)(n)
-//    def pointGenerator: Int => Set[Point] = PointGenerator.combineVertical(pg3, PointGenerator.inverseX(pg3))
-//          def polygonGeneratorMin = PolygonGenerator.generateReverseStarPolygon(pointGenerator)
-//          def polygonGeneratorMin = PolygonGenerator.generateWedgePolygon(pointGenerator)
-    def polygonGeneratorMin = PolygonGenerator.triangleBasedGeneratorSurfaceBased(pointGenerator)
-//    def polygonGeneratorMax = PolygonGenerator.generateTwoPolygonsInSquare(polygonGeneratorMin)
-          def polygonGeneratorMax = PolygonGenerator.generatePolygonInSquare(polygonGeneratorMin)
-    for (i <- 1 to 1000) {
-      val sizes = SolutionManager.opportunities.filter(_ > 10).reverse
-//      val sizes = SolutionManager.opportunities//.filter(_ < 150)
-      val n = sizes(Math.min(rollExponential(), sizes.length - 1))
+    def pg2: Int => Set[Point] = n => PointGenerator.generateCrossPoints((1.5 * Math.pow(n, 0.5)).toInt)(n)
+    def pg3: Int => Set[Point] = n => PointGenerator.generateDiagonalPoints((1.5 * Math.pow(n, 0.5)).toInt)(n)
+
+    def pointGenerator: Int => Set[Point] = n =>
+      if (Random.nextDouble() <= 0.33) PointGenerator.combine(pg2, pg3)(n)
+      else if (Random.nextDouble() <= 0.5) PointGenerator.combineVertical(pg3, PointGenerator.inverseX(pg3))(n)
+      else pg3(n)
+    def polygonGen =
+    //      if (Random.nextDouble() <= 0.0033) PolygonGenerator.generateWedgePolygon(pointGenerator)
+      if (Random.nextDouble() <= 0.33) PolygonGenerator.triangleBasedGeneratorSqrPeripheryBased(pointGenerator) // ok-ish
+      else if (Random.nextDouble() <= 0.5) PolygonGenerator.triangleBasedGeneratorSurfaceBased(pointGenerator)
+      else PolygonGenerator.generateReverseStarPolygon(pointGenerator)
+    def polygonGeneratorMin = PolygonGenerator.generateWedgePolygon(pointGenerator)
+    def polygonGeneratorMax =
+      if (Random.nextBoolean()) PolygonGenerator.generatePolygonInSquare(polygonGeneratorMin)
+      else PolygonGenerator.generateTwoPolygonsInSquare(polygonGeneratorMin)
+    for (i <- 1 to 1000000) {
+      //      val sizes = SolutionManager.opportunities.filter(_ < 250)
+      val sizes = SolutionManager.opportunities //.filter(_ < 150)
+      val n = sizes.head //(Math.min(rollExponential(), sizes.length - 1))
       val optimizer = new Optimizer(
-        maxRoundsWithoutImprovement = (75 - Math.sqrt(n)).toInt,
+        maxRoundsWithoutImprovement = 10, //(30 - Math.sqrt(n)).toInt,
         familyRevitalizations = 0,
-        familySize = 10,
+        familySize = 3,
         nrOfFamilies = 1,
-        maxOffSpring = 30
+        maxOffSpring = 10
       )
-      Try(optimizer.optimizeFromPolygon(polygonGeneratorMax, n, true)(actionOnFoundMax, actionWithBest(true)))
-      Try(optimizer.optimizeFromPolygon(polygonGeneratorMin, n, false)(actionOnFoundMin, actionWithBest(false)))
+      Try(optimizer.optimizeFromPolygonGenerator(polygonGeneratorMax, n, true)(actionOnFoundMax, actionWithBest(true)))
+      Try(optimizer.optimizeFromPolygonGenerator(polygonGeneratorMin, n, false)(actionOnFoundMin, actionWithBest(false)))
 
     }
-
   }
 
   val screen = Screen.primary
@@ -114,6 +120,6 @@ object GuiSearch extends JFXApp {
     val right = FXPolygon(polygonPoints(pointsRight, left = false): _*)
     left.fill = Black
     right.fill = Black
-    Platform.runLater( polygonScene.content = Seq(left, right))
+    Platform.runLater(polygonScene.content = Seq(left, right))
   }
 }
