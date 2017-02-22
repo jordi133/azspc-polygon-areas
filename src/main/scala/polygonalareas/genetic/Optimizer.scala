@@ -3,6 +3,7 @@ package polygonalareas.genetic
 import polygonalareas.core.SolutionManager
 import polygonalareas.{Point, doubleSurface}
 
+import scala.collection.parallel.ParSeq
 import scala.util.Random
 
 /**
@@ -14,9 +15,13 @@ class Optimizer(
                  familySize: Int = 10,
                  nrOfFamilies: Int = 1,
                  maxOffSpring: Int = 25,
+                 generationSteps: Int = 2,
                  seed: Int = Random.nextInt()) {
   implicit val random = new Random(seed)
 
+  /**
+    * Can be used for improving the current best solution
+    */
   def optimiseFromPolygon(polygon: Polygon, maximize: Boolean)(actionOnFound: IndexedSeq[Point] => Unit, actionWithBest: IndexedSeq[Point] => Unit = _ => ()) = {
     val gen: Int => IndexedSeq[Point] = n => polygon.points
     optimizeFromPolygonGenerator(gen, polygon.size, maximize)(actionOnFound, actionWithBest)
@@ -95,14 +100,20 @@ class Optimizer(
       Family(newPop, newGenerationsWithoutImprovement)
     }
 
-    def getNewGeneration: Seq[Polygon] =
-      pop.par.flatMap(_.nextGen(maxOffSpring * generationsWithoutImprovement).flatMap(_.nextGen(maxOffSpring * generationsWithoutImprovement))).seq
-//      if (generationsWithoutImprovement > 2 * maxRoundsWithoutImprovement / 3 && leastParEdges == 0) {
-//        pop.par.flatMap(_.nextGen(Math.sqrt(maxOffSpring * generationsWithoutImprovement).toInt))
-//          .flatMap(_.nextGen(Math.sqrt(maxOffSpring * generationsWithoutImprovement).toInt)).seq
-//      } else {
-//        pop.par.flatMap(_.nextGen(maxOffSpring * generationsWithoutImprovement)).seq
-//      }
+    def getNewGeneration: Seq[Polygon] = {
+      def nextGenR(pop: ParSeq[Polygon], stepsToGo: Int = generationSteps): ParSeq[Polygon] = {
+        if (stepsToGo == 0) {
+          pop
+        }
+        else {
+          nextGenR(pop.flatMap(_.nextGen(maxOffSpring)), stepsToGo - 1)
+//          nextGenR(pop.flatMap(_.nextGen(maxOffSpring * generationsWithoutImprovement)), stepsToGo - 1)
+        }
+      }
+      nextGenR(pop.par).seq
+      //      pop.par.flatMap(_.nextGen(maxOffSpring * generationsWithoutImprovement).flatMap(_.nextGen(maxOffSpring * generationsWithoutImprovement))).seq
+    }
+
   }
 
 }

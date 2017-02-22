@@ -23,27 +23,77 @@ import scalafx.stage.Screen
   */
 object GuiSearch extends JFXApp {
 
-  var selectedSize = 10
+  val screen = Screen.primary
+  val bounds = screen.visualBounds
 
-  var running = false
+  //  var running = false
 
-  var polygonScene = new Scene {
-    content = new Rectangle {
-      x = 25
-      y = 40
-      width = 100
-      height = 100
-      fill <== when(hover) choose Green otherwise Red
+  val polygonScene = new Scene {
+    //    onMouseClicked = { _: MouseEvent =>
+    //      if (!running) {
+    //        running = true
+    //        Future(startSearch())
+    //      }
+    //    }
+  }
+
+  stage = new JFXApp.PrimaryStage {
+    title.value = "Polygons"
+    scene = polygonScene
+  }
+
+  Future(startSearch())
+
+  def startSearch() = {
+    val actionOnFoundMax: IndexedSeq[Point] => Unit = { points =>
+      SolutionManager.addSolution(points)
     }
-    onMouseClicked = { _: MouseEvent =>
-      if (!running) {
-        running = true
-        Future(startSearch())
-      }
+    val actionOnFoundMin: IndexedSeq[Point] => Unit = { points =>
+      SolutionManager.addSolution(points)
+    }
+    def actionWithBest(maximize: Boolean): IndexedSeq[Point] => Unit = { points =>
+      refreshPolygons(points, maximize)
+    }
+    def rollExponential(d: Double = Random.nextDouble(), acc: Int = 0): Int = {
+      if (d > 0.5) acc
+      else rollExponential(2 * d, acc + 1)
+    }
+
+    def pg1: Int => Set[Point] = n => PointGenerator.generateRandomPoints()(n)
+    def pg2: Int => Set[Point] = n => PointGenerator.generateCrossPoints((1.5 * Math.pow(n, 0.5)).toInt)(n)
+    def pg3: Int => Set[Point] = n => PointGenerator.generateDiagonalPoints((1.5 * Math.pow(n, 0.5)).toInt)(n)
+    def pg4: Int => Set[Point] = n => PointGenerator.generateDiagonalPoints(n / 3)(n)
+    def pointGenerator: Int => Set[Point] = n =>
+      if (Random.nextDouble() <= 0.33) PointGenerator.combine(pg2, pg3)(n)
+      else if (Random.nextDouble() < 0.5) pg3(n)
+      else pg4(n)
+    def polygonGen =
+      if (Random.nextDouble() <= 0.25) PolygonGenerator.generateDoubleWedgePolygon(pointGenerator)
+      else if (Random.nextDouble() <= 0.33) PolygonGenerator.triangleBasedGeneratorSqrPeripheryBased(pointGenerator) // ok-ish
+      else if (Random.nextDouble() <= 0.5) PolygonGenerator.triangleBasedGeneratorSurfaceBased(pointGenerator)
+      else PolygonGenerator.generateReverseStarPolygon(pointGenerator)
+    def polygonGeneratorMin = polygonGen // PolygonGenerator.generateWedgePolygon(pointGenerator)
+    def polygonGeneratorMax =
+      if (Random.nextBoolean()) PolygonGenerator.generatePolygonInSquare(polygonGeneratorMin)
+      else PolygonGenerator.generateTwoPolygonsInSquare(polygonGeneratorMin)
+    for (i <- 1 to 1000000) {
+      val sizes = SolutionManager.opportunities //.filter(_ < 150)
+      val n = sizes.head //(Math.min(rollExponential(), sizes.length - 1))
+      val optimizer = new Optimizer(
+        maxRoundsWithoutImprovement = 10, //(30 - Math.sqrt(n)).toInt,
+        familyRevitalizations = 0,
+        familySize = 3,
+        nrOfFamilies = 1,
+        maxOffSpring = 20,
+        generationSteps = 2
+      )
+      Try(optimizer.optimizeFromPolygonGenerator(polygonGeneratorMax, n, true)(actionOnFoundMax, actionWithBest(true)))
+      Try(optimizer.optimizeFromPolygonGenerator(polygonGeneratorMin, n, false)(actionOnFoundMin, actionWithBest(false)))
+
     }
   }
 
-  def startSearch2() = {
+  def continueFromBestFoundSoDar() = {
     for (n <- puzzleSizes.drop(2)) {
       //        val n = puzzleSizes.last
       val actionOnFound: IndexedSeq[Point] => Unit = { points => SolutionManager.addSolution(points) }
@@ -64,63 +114,6 @@ object GuiSearch extends JFXApp {
         Try(optimizer.optimiseFromPolygon(Polygon(polygon.toIndexedSeq), false)(actionOnFound, actionWithBest(false)))
       }
     }
-  }
-
-  def startSearch() = {
-    val actionOnFoundMax: IndexedSeq[Point] => Unit = { points =>
-      SolutionManager.addSolution(points)
-    }
-    val actionOnFoundMin: IndexedSeq[Point] => Unit = { points =>
-      SolutionManager.addSolution(points)
-    }
-    def actionWithBest(maximize: Boolean): IndexedSeq[Point] => Unit = { points =>
-      refreshPolygons(points, maximize)
-    }
-    def rollExponential(d: Double = Random.nextDouble(), acc: Int = 0): Int = {
-      if (d > 0.5) acc
-      else rollExponential(2 * d, acc + 1)
-    }
-
-    def pg1: Int => Set[Point] = n => PointGenerator.generateRandomPoints()(n)
-    def pg2: Int => Set[Point] = n => PointGenerator.generateCrossPoints((1.5 * Math.pow(n, 0.5)).toInt)(n)
-    def pg3: Int => Set[Point] = n => PointGenerator.generateDiagonalPoints((1.5 * Math.pow(n, 0.5)).toInt)(n)
-    def pg4: Int => Set[Point] = n => PointGenerator.generateDiagonalPoints(n / 4)(n)
-    def pointGenerator: Int => Set[Point] = n =>
-      if (Random.nextDouble() <= 0.33) PointGenerator.combine(pg2, pg3)(n)
-      else if (Random.nextDouble() < 0.5) pg3(n)
-      else pg4(n)
-    def polygonGen =
-    //      if (Random.nextDouble() <= 0.0033) PolygonGenerator.generateWedgePolygon(pointGenerator)
-      if (Random.nextDouble() <= 0.33) PolygonGenerator.triangleBasedGeneratorSqrPeripheryBased(pointGenerator) // ok-ish
-      else if (Random.nextDouble() <= 0.5) PolygonGenerator.triangleBasedGeneratorSurfaceBased(pointGenerator)
-      else PolygonGenerator.generateReverseStarPolygon(pointGenerator)
-    def polygonGeneratorMin = PolygonGenerator.generateWedgePolygon(pointGenerator)
-    def polygonGeneratorMax =
-      if (Random.nextBoolean()) PolygonGenerator.generatePolygonInSquare(polygonGeneratorMin)
-      else PolygonGenerator.generateTwoPolygonsInSquare(polygonGeneratorMin)
-    for (i <- 1 to 1000000) {
-      //      val sizes = SolutionManager.opportunities.filter(_ < 250)
-      val sizes = SolutionManager.opportunities.filter(_ < 150)
-      val n = sizes.head //(Math.min(rollExponential(), sizes.length - 1))
-      val optimizer = new Optimizer(
-        maxRoundsWithoutImprovement = 10, //(30 - Math.sqrt(n)).toInt,
-        familyRevitalizations = 0,
-        familySize = 1,
-        nrOfFamilies = 1,
-        maxOffSpring = 10
-      )
-      Try(optimizer.optimizeFromPolygonGenerator(polygonGeneratorMax, n, true)(actionOnFoundMax, actionWithBest(true)))
-      Try(optimizer.optimizeFromPolygonGenerator(polygonGeneratorMin, n, false)(actionOnFoundMin, actionWithBest(false)))
-
-    }
-  }
-
-  val screen = Screen.primary
-  val bounds = screen.visualBounds
-
-  stage = new JFXApp.PrimaryStage {
-    title.value = "Polygons"
-    scene = polygonScene
   }
 
   def pointGenerator: Int => Set[Point] = n => PointGenerator.generateDiagonalPoints((1.5 * Math.pow(n, 0.5)).toInt)(n)
