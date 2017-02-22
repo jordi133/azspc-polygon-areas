@@ -18,9 +18,9 @@ class OptimizerTest extends WordSpec {
         //        val n = puzzleSizes.last
         val actionOnFound: IndexedSeq[Point] => Unit = { points => SolutionManager.addSolution(points) }
         val optimizer = new Optimizer(
-          maxRoundsWithoutImprovement = 20,
+          maxRoundsWithoutImprovement = 15,
           familyRevitalizations = 0,
-          familySize = 5,
+          familySize = 1,
           nrOfFamilies = 1,
           maxOffSpring = 25 - Math.sqrt(n).toInt
         )
