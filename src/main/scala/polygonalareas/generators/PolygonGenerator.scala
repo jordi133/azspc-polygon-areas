@@ -71,6 +71,29 @@ object PolygonGenerator {
     result
   }
 
+  def generateTwoOppositePolygonsInSquare(polygonGenerator: Int => IndexedSeq[Point]): (Int) => IndexedSeq[Point] =
+    generateTwoOppositePolygonsInSquare(polygonGenerator, polygonGenerator)
+
+  def generateTwoOppositePolygonsInSquare(polygonGenerator1: Int => IndexedSeq[Point], polygonGenerator2: Int => IndexedSeq[Point]): (Int) => IndexedSeq[Point] = {n =>
+    val polygon1Size = (n - 3) / 2
+    val polygon2Size = (n - 3) - polygon1Size
+    val polygon1 = polygonGenerator1(polygon1Size) map (p => Point(p.x + 1, p.y + 1))
+    val polygon2 = polygonGenerator2(polygon2Size).tail.reverse.tail map (p => Point(n - p.x-1, polygon1Size + 1 + p.y))
+
+    val p1 = Point(n-1, 1)
+    val p2 = Point(n - 3, 2 + polygon1Size)
+    val p3 = Point(n - 2, 3 + polygon1Size)
+    val p4 = Point(n, n)
+    val p5 = Point(1, n-1)
+
+    val result = polygon1 ++ (p5 +: p4 +: p3 +: polygon2) ++ IndexedSeq(p2, p1)
+    require(result.size == n, s"Size of generated polygon incorrect: actual size ${result.size}, expected: $n")
+    require(result.map(_.x).distinct.size == n, s"duplicate x coordinates (${result.map(_.x).diff(result.map(_.x).distinct)}) used in $result")
+    require(result.map(_.y).distinct.size == n, s"duplicate y coordinates (${result.map(_.y).diff(result.map(_.y).distinct)}) used in $result")
+    require(!Polygon(result).isSelfIntersecting, s"Generated polygon is self intersecting: $result")
+    result
+  }
+
   def generateDiagonalPolygon(points: Set[Point]): IndexedSeq[Point] = {
     val l = points.minBy(_.x)
     val r = points.maxBy(_.x)

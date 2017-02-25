@@ -110,5 +110,13 @@ class PolygonGeneratorTest extends WordSpec{
       println(pg)
     }
   }
+  "generateTwoOppositePolygonsInSquare" should {
+    "generate a valid polygon with generateWedgePolygon for various n" in {
+      for (n <- 100 to 110) {
+        val pg = PolygonGenerator.generateTwoOppositePolygonsInSquare(PolygonGenerator.generateReverseStarPolygon(PointGenerator.generateRandomPoints()))(n)
+        println(pg)
+      }
+    }
+  }
 
 }

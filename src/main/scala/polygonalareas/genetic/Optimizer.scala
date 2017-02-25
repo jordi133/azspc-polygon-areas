@@ -106,7 +106,7 @@ class Optimizer(
           pop
         }
         else {
-          nextGenR(pop.flatMap(_.nextGen(maxOffSpring)), stepsToGo - 1)
+          nextGenR(pop.flatMap(_.nextGen(maxOffSpring * (1+generationsWithoutImprovement))), stepsToGo - 1)
 //          nextGenR(pop.flatMap(_.nextGen(maxOffSpring * generationsWithoutImprovement)), stepsToGo - 1)
         }
       }

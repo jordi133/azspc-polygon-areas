@@ -72,19 +72,20 @@ object GuiSearch extends JFXApp {
       else if (Random.nextDouble() <= 0.33) PolygonGenerator.triangleBasedGeneratorSqrPeripheryBased(pointGenerator) // ok-ish
       else if (Random.nextDouble() <= 0.5) PolygonGenerator.triangleBasedGeneratorSurfaceBased(pointGenerator)
       else PolygonGenerator.generateReverseStarPolygon(pointGenerator)
-    def polygonGeneratorMin = polygonGen // PolygonGenerator.generateWedgePolygon(pointGenerator)
+    def polygonGeneratorMin = polygonGen
     def polygonGeneratorMax =
-      if (Random.nextBoolean()) PolygonGenerator.generatePolygonInSquare(polygonGeneratorMin)
+      if (Random.nextBoolean()) PolygonGenerator.generateTwoOppositePolygonsInSquare(polygonGeneratorMin)
+      else if (Random.nextBoolean()  ) PolygonGenerator.generatePolygonInSquare(polygonGeneratorMin)
       else PolygonGenerator.generateTwoPolygonsInSquare(polygonGeneratorMin)
     for (i <- 1 to 1000000) {
       val sizes = SolutionManager.opportunities //.filter(_ < 150)
       val n = sizes.head //(Math.min(rollExponential(), sizes.length - 1))
       val optimizer = new Optimizer(
-        maxRoundsWithoutImprovement = 10, //(30 - Math.sqrt(n)).toInt,
+        maxRoundsWithoutImprovement = 8, //(30 - Math.sqrt(n)).toInt,
         familyRevitalizations = 0,
         familySize = 3,
         nrOfFamilies = 1,
-        maxOffSpring = 20,
+        maxOffSpring = 10,
         generationSteps = 2
       )
       Try(optimizer.optimizeFromPolygonGenerator(polygonGeneratorMax, n, true)(actionOnFoundMax, actionWithBest(true)))
@@ -93,7 +94,7 @@ object GuiSearch extends JFXApp {
     }
   }
 
-  def continueFromBestFoundSoDar() = {
+  def continueFromBestFoundSoFar() = {
     for (n <- puzzleSizes.drop(2)) {
       //        val n = puzzleSizes.last
       val actionOnFound: IndexedSeq[Point] => Unit = { points => SolutionManager.addSolution(points) }
