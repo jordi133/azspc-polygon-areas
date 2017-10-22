@@ -1,0 +1,590 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!-- saved from url=(0040)http://azspcs.com/Contest/PolygonalAreas -->
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>
+	
+    AZsPCs - Polygonal Areas - Description
+
+</title><link href="./AZsPCs - Polygonal Areas - Description_files/Content.css" rel="stylesheet" type="text/css"><link href="./AZsPCs - Polygonal Areas - Description_files/Master.css" rel="stylesheet" type="text/css">
+    <style type="text/css">
+        #header a:link,  #header a:visited  {text-decoration:none;}
+        #header a:hover, #header a:active   {text-decoration:underline;}
+        a.country:link,  a.country:visited  {text-decoration:none;}
+        a.country:hover, a.country:active   {text-decoration:underline;}
+        #footer a:link,  #footer a:visited  {text-decoration:none;}
+        #footer a:hover, #footer a:active   {text-decoration:underline;}
+        #landmarks
+        {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 110%;
+            padding: 5px 5px 5px 5px;
+            font-weight:bold;
+        }
+        #landmarks a:link,  #landmarks a:visited  {text-decoration:none;}
+        #landmarks a:hover, #landmarks a:active   {text-decoration:underline;}
+    </style>
+    
+    <script src="./AZsPCs - Polygonal Areas - Description_files/ca-pub-8847009283889597.js.download"></script><script src="./AZsPCs - Polygonal Areas - Description_files/jquery.min.js.download">
+        
+    </script>
+
+    <script language="javascript" type="text/javascript">
+        function noSpam(name,domain) {
+            var location = "mailto:" + name + "@" + domain;
+            document.location = location;
+        }
+    </script>
+
+    <script type="text/javascript">
+        function setFocus(){
+            if(document.forms.length == 0) return;
+            for(var i = 0; i < document.forms[0].length; i++){
+                var element = document.forms[0][i];
+                if (!element.disabled) {
+                    switch (element.type) {
+                    case "text" : element.focus(); return;
+                    case "textarea" : element.focus(); return;
+                    case "checkbox" : element.focus(); return;
+                    case "radio" : element.focus(); return;
+                    case "file" : element.focus(); return;
+                    case "password" : element.focus(); return;
+                    case "select-one" : element.focus(); return;
+                    case "select-multiple" : element.focus(); return;
+                    }
+                }
+            }
+        }
+    </script>
+    
+
+
+<link rel="preload" href="./AZsPCs - Polygonal Areas - Description_files/integrator.js.download" as="script"><script type="text/javascript" src="./AZsPCs - Polygonal Areas - Description_files/integrator.js.download"></script><link rel="preload" href="./AZsPCs - Polygonal Areas - Description_files/integrator.js(1).download" as="script"><script type="text/javascript" src="./AZsPCs - Polygonal Areas - Description_files/integrator.js(1).download"></script><link rel="prefetch" href="https://securepubads.g.doubleclick.net/static/3p_cookie.html"></head>
+<body onload="setFocus()" style="">
+    <div class="page">
+        <div id="header">
+            <img id="logo" alt="Logo" src="./AZsPCs - Polygonal Areas - Description_files/4circles.gif">
+            <span id="title">&nbsp; Al Zimmermann's Programming Contests</span>
+            
+<div id="welcome">
+    <a href="http://azspcs.com/Account/Register">Register</a>
+        |
+        <a href="http://azspcs.com/Account/LogOn?returnUrl=%2FContest%2FPolygonalAreas">Log On</a>
+    
+</div>
+        </div>
+        <div id="main">
+            
+            
+            
+            
+            
+    <div id="landmarks">
+        <a href="http://azspcs.com/">Home</a> &gt; Polygonal Areas &gt; <a href="http://azspcs.com/Contest/PolygonalAreas">Description</a>
+    </div>
+
+            <div id="contentContainer">
+                
+    
+<link href="./AZsPCs - Polygonal Areas - Description_files/Content.css" rel="stylesheet" type="text/css">
+<div class="centerAlign">
+    <h2>
+        Polygonal Areas</h2>
+    
+    <label class="warning">
+        This contest ended on 11&nbsp;Mar&nbsp;2017</label>
+    
+    <p>
+
+</p></div>
+
+        
+        <div style="text-align:center">
+            <table id="subMenu" style="display:inline-table">
+                <tbody><tr>
+                    <td class="selected">
+                        Description
+                    </td>
+                    <td class="notSelected">
+                        <a href="http://azspcs.com/Contest/PolygonalAreas/Enter">Submit An Entry</a>
+                    </td>
+                    <td class="notSelected">
+                        <a href="http://azspcs.com/Contest/PolygonalAreas/Standings">Standings</a>
+                    </td>
+                    
+                    <td class="notSelected">
+                        <a href="http://azspcs.com/Contest/PolygonalAreas/FinalReport">Final Report</a>
+                    </td>
+                    
+                </tr>
+            </tbody></table>
+        </div>
+        
+
+
+
+    <table>
+        <tbody><tr>
+            <td style="padding-left:10px">
+                
+                <h3>The Task</h3>
+                <p>
+                    Given a positive integer 
+                    <span style="font-size:medium;font-family:serif"><i>n</i></span>, 
+                    create a polygon by selecting 
+                    <span style="font-size:medium;font-family:serif"><i>n</i></span>
+                    vertices from an
+                    <span style="font-size:medium;font-family:serif"><i>n</i></span>&nbsp;×&nbsp;<span style="font-size:medium;font-family:serif"><i>n</i></span>
+                    grid of points, subject to the following constraints:
+                </p>
+                <ul>
+                    <li>
+                        No two vertices are from the same row or from the same column of the grid.
+                        <br><br>
+                    </li>
+                    <li>
+                        No two sides have the same slope.
+                        <br><br>
+                    </li>
+                    <li>
+                        No two sides intersect, except at a shared vertex.
+                    </li>
+                </ul>
+
+                <p>Here are some examples for <span style="font-size:medium;font-family:serif"><i>n</i></span> = 6:</p>
+                
+            <table style="width:100%;text-align:center">
+                <tbody><tr>
+                    <td><img src="./AZsPCs - Polygonal Areas - Description_files/SameRow_6x6.png" alt="Polygon with two vertices in the same row."></td>
+                    <!--<td><img src="/Image/PolygonalAreas/Collinear_6x6.png"  alt="Polygon with three collinear vertices."/></td>-->
+                    <td><img src="./AZsPCs - Polygonal Areas - Description_files/Parallel_6x6.png" alt="Polygon with two sides that have the same slope."></td>
+                    <td><img src="./AZsPCs - Polygonal Areas - Description_files/NotSimple_6x6.png" alt="Polygon with intersecting sides."></td>
+                    <td><img src="./AZsPCs - Polygonal Areas - Description_files/ValidC_6x6.png" alt="Valid polygon."></td>
+                </tr>
+                <tr style="vertical-align:top">
+                    <td><b>Example 1</b><br>Invalid. Two vertices<br>from the same row.</td>
+                    <!--<td><b>Example 2</b><br/>Invalid. Three vertices<br/>are collinear.</td>-->
+                    <td><b>Example 2</b><br>Invalid. Two sides have<br>the same slope.</td>
+                    <td><b>Example 3</b><br>Invalid. Sides intersect.</td>
+                    <td><b>Example 4</b><br>Valid.</td>
+                </tr>
+            </tbody></table>
+                
+            <br><h3>A Word From Our Sponsor</h3>
+            <table class="withBorder" style="width:93%; padding:15px 0 15px 0"><tbody><tr><td style="text-align: center;padding:15px 0 15px 0">
+                <script async="" src="./AZsPCs - Polygonal Areas - Description_files/adsbygoogle.js.download"></script>
+                <!-- Standings Leaderboard 4 -->
+                <ins class="adsbygoogle" style="display:inline-block;width:728px;height:90px" data-ad-client="ca-pub-8847009283889597" data-ad-slot="7214671867" data-adsbygoogle-status="done"><ins id="aswift_0_expand" style="display:inline-table;border:none;height:90px;margin:0;padding:0;position:relative;visibility:visible;width:728px;background-color:transparent;"><ins id="aswift_0_anchor" style="display:block;border:none;height:90px;margin:0;padding:0;position:relative;visibility:visible;width:728px;background-color:transparent;"><iframe width="728" height="90" frameborder="0" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" allowfullscreen="true" onload="var i=this.id,s=window.google_iframe_oncopy,H=s&amp;&amp;s.handlers,h=H&amp;&amp;H[i],w=this.contentWindow,d;try{d=w.document}catch(e){}if(h&amp;&amp;d&amp;&amp;(!d.body||!d.body.firstChild)){if(h.call){setTimeout(h,0)}else if(h.match){try{h=s.upd(h,i)}catch(e){}w.location.replace(h)}}" id="aswift_0" name="aswift_0" style="left:0;position:absolute;top:0;width:728px;height:90px;" src="./AZsPCs - Polygonal Areas - Description_files/saved_resource.html"></iframe></ins></ins></ins>
+                <script>
+                    (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>                            
+            </td></tr></tbody></table>
+     
+            <br><h3>The Contest</h3>
+                <p>
+                    For each integer
+                    <span style="font-size:medium;font-family:serif"><i>n</i></span> 
+                    from the list below submit two polygons as described above. 
+                    One of the polygons should have the largest area you can create; 
+                    the other should have the smallest.  
+                    See <a href="http://azspcs.com/Contest/PolygonalAreas#HowToEnter">How to Enter</a>, 
+                    below, for instructions on how to submit your polygons.
+                </p>
+                
+                <p>
+                    The values of <span style="font-size:medium;font-family:serif"><i>n</i></span> are 
+                    5, 7, 11, 17, 23, 29, 37, 47, 59, 71, 83, 97, 113, 131, 
+                    149, 167, 191, 223, 257, 293, 331, 373, 419, 467, 521.
+                </p>
+
+                <p>
+                    For each value of 
+                    <span style="font-size:medium;font-family:serif"><i>n</i></span> 
+                    you can submit more than two polygons if you wish, 
+                    but only the most extreme
+                    – that is, the one with the largest area and the one with the smallest –
+                    will count.
+                </p>
+
+                <p>
+                    See <a href="http://azspcs.com/Contest/PolygonalAreas#TheScoringSystem">The Scoring System</a>, below, to  
+                    learn how we determine the winner.
+                </p>
+                
+                <p>
+                    This contest was inspired by Cihan Altay's 2002 <a href="http://www.otuzoyun.com/pqrst/puzzle0209.html">Loop Pool</a> puzzle.
+                </p>
+
+            <br><h3>The Prizes</h3>
+                <p>
+                    First prize: Any item, up to a $500 value, from <a href="http://www.bathsheba.com/" target="_blank">Bathsheba Sculpture</a>.
+                    <br>
+                    Second prize: Any item, up to a $100 value, from the same site.
+                    <br><br>
+                    Al Zimmermann is particularly partial to the metal sculptures,
+                    but if you win don't let that influence your choice –
+                    the laser crystals are also pretty cool.
+                </p>    
+
+                <a id="HowToEnter"></a>
+                <br><h3>How to Enter</h3>
+    
+                <p>
+                    Just paste your polygons into the large box on the 
+                    <a href="http://azspcs.com/Contest/PolygonalAreas/Enter">Submit</a> page and click the Submit
+                    Entry button.  Format your polygons as follows:
+                </p>
+
+                <ul>
+                    <li>
+                        An individual polygon consists of a comma-delimited list of points.
+                        <br><br>
+                    </li>
+                    <li>
+                        Each point consists of an x-coordinate and a y-coordinate, 
+                        separated by a comma and enclosed in parentheses.  
+                        Coordinates must range from 1 to 
+                        <span style="font-size:medium;font-family:serif"><i>n</i></span>.
+                        <br><br>
+                    </li>
+                    <li>
+                        To submit more than one polygon at a time,
+                        separate them with semicolons.  
+                        Do not put a semicolon after your last polygon.
+                        <br><br>
+                    </li>
+                    <li>
+                        Include spaces and line breaks anywhere you like (except within a 
+                        number) to improve readability.
+                    </li>
+                </ul>
+                
+                <p>
+                    For example, 
+                    <!--if you were permitted to submit solutions for 
+                    <span style="font-size:medium;font-family:serif"><i>n</i></span> = 6-->
+                    you could submit the polygon from Example 4 above by entering: 
+                    <code>(1,2), (2,6), (3,4), (4,5), (6,3), (5,1)</code>
+                </p>
+
+                <a id="TheScoringSystem"></a>
+                <br><h3>The Scoring System</h3>
+
+               <p>
+                   The entrant with the highest <span style="font-weight:800">contest score</span> wins.  
+                   Here's how we calculate your contest score:
+               </p>
+               <ul>
+                    <li>
+                        For each of the 25 possible values of <span style="font-size:medium;font-family:serif"><i>n</i></span>, we 
+                        identify the polygon you submitted with the 
+                        largest area and the one with 
+                        the smallest.  The difference between these 
+                        two areas is your <span style="font-weight:800">raw score</span> for 
+                        that <span style="font-size:medium;font-family:serif"><i>n</i></span>.
+                        <br><br>
+                    </li>
+                    <li>
+                        For each of the 25 possible values of <span style="font-size:medium;font-family:serif"><i>n</i></span>, we 
+                        also identify the polygon with the largest area 
+                        submitted by any entrant and the polygon with 
+                        the smallest area submitted by any entrant.  
+                        The difference between those two numbers is 
+                        the <span style="font-weight:800">conjectural best</span> for that <span style="font-size:medium;font-family:serif"><i>n</i></span>.
+                        <br><br>
+                    </li>
+                    <li>
+                        Then, for each <span style="font-size:medium;font-family:serif"><i>n</i></span>, we calculate your <span style="font-weight:800">subscore</span> 
+                        for that <span style="font-size:medium;font-family:serif"><i>n</i></span> by dividing your raw score by the 
+                        conjectural best.  
+                        <br><br>
+                    </li>
+                    <li>
+                        Finally, we calculate your contest score by 
+                        adding up your 25 subscores.
+                    </li>
+                </ul>
+
+                <p>
+                    If two entrants have the same contest score, we break 
+                    the tie by giving preference to the entrant whose last
+                    improvement was submitted least recently.
+                </p>
+
+                <p>
+                    Let's walk through a simplified example.  Suppose that we modify 
+                    the contest by asking you to submit polygons for only three values of <span style="font-size:medium;font-family:serif"><i>n</i></span>:  6, 8 and 10.
+                </p>
+ 
+                <p>
+                    Further suppose that we have 3 entrants (Hillary, 
+                    Donald and Gary) and that these are their most 
+                    extreme polygons and their raw scores:
+                </p>
+
+                <table class="withBorder">
+                    <tbody><tr>
+                        <th style="width:120px" rowspan="2"></th>
+                        <th style="width:175px" colspan="3"><span style="font-size:medium;font-family:serif"><i>n</i></span> = 6</th>
+                        <th style="width:175px" colspan="3"><span style="font-size:medium;font-family:serif"><i>n</i></span> = 8</th>
+                        <th style="width:175px" colspan="3"><span style="font-size:medium;font-family:serif"><i>n</i></span> = 10</th>
+                    </tr>
+    
+                    <tr>
+                        <th style="width:40px">Min Area</th><th style="width:40px">Max Area</th><th style="width:71px">Raw<br>Score</th>
+                        <th style="width:40px">Min Area</th><th style="width:40px">Max Area</th><th style="width:71px">Raw<br>Score</th>
+                        <th style="width:40px">Min Area</th><th style="width:40px">Max Area</th><th style="width:71px">Raw<br>Score</th>
+                    </tr>
+    
+                    <tr align="center">
+                        <th>Hillary</th>
+                        <td> 6.5</td><td>13.5</td><td> 7.0</td>
+                        <td>14.5</td><td>23.5</td><td> 9.0</td>
+                        <td>24.5</td><td>34.5</td><td>10.0</td>
+                    </tr>
+
+                    <tr align="center">
+                        <th>Donald</th>
+                        <td> 5.5</td><td>11.0</td><td> 5.5</td>
+                        <td> 7.0</td><td>18.5</td><td>11.5</td>
+                        <td>28.0</td><td>40.5</td><td>12.5</td>
+                    </tr>
+
+                    <tr align="center">
+                        <th>Gary</th>
+                        <td> 9.0</td><td> 9.5</td><td>0.5</td>
+                        <td>15.5</td><td>17.0</td><td>1.5</td>
+                        <td>32.0</td><td>33.5</td><td>1.5</td>
+                    </tr>
+
+                </tbody></table>
+
+                <p>
+                    We note the conjectural best for each problem, as follows:
+                </p>
+
+                <table class="withBorder">
+                    <tbody><tr>
+                        <th style="width:120px" rowspan="2"></th>
+                        <th style="width:175px" colspan="3"><span style="font-size:medium;font-family:serif"><i>n</i></span> = 6</th>
+                        <th style="width:175px" colspan="3"><span style="font-size:medium;font-family:serif"><i>n</i></span> = 8</th>
+                        <th style="width:175px" colspan="3"><span style="font-size:medium;font-family:serif"><i>n</i></span> = 10</th>
+                    </tr>
+
+                    <tr>
+                        <th style="width:40px">Min Area</th><th style="width:40px">Max Area</th><th style="width:71px">Conjectural<br>Best</th>
+                        <th style="width:40px">Min Area</th><th style="width:40px">Max Area</th><th style="width:71px">Conjectural<br>Best</th>
+                        <th style="width:40px">Min Area</th><th style="width:40px">Max Area</th><th style="width:71px">Conjectural<br>Best</th>
+                    </tr>
+    
+                    <tr align="center">
+                        <th style="text-align:center">All Entrants</th>
+                        <td> 5.5</td><td>13.5</td><td> 8.0</td>
+                        <td> 7.0</td><td>23.5</td><td>16.5</td>
+                        <td>24.5</td><td>40.5</td><td>16.0</td>
+                    </tr>
+                </tbody></table>
+
+                <p>
+                    Finally, we compute the subscores and contest score for each entrant:
+                </p>
+
+                    <table class="withBorder">
+                        <tbody><tr>
+                            <th style="width:120px"></th>
+                            <th style="width:175px"><span style="font-size:medium;font-family:serif"><i>n</i></span> = 6</th>
+                            <th style="width:175px"><span style="font-size:medium;font-family:serif"><i>n</i></span> = 8</th>
+                            <th style="width:175px"><span style="font-size:medium;font-family:serif"><i>n</i></span> = 10</th>
+                            <th>Contest Score</th>
+                        </tr>
+    
+                        <tr align="center">
+                            <th>Hillary</th>
+                            <td> 7.0 /  8.0 = 0.8750</td>
+                            <td> 9.0 / 16.5 = 0.5455</td>
+                            <td>10.0 / 16.0 = 0.6250</td>
+                            <td>2.0455</td>
+                        </tr>
+
+                        <tr align="center">
+                            <th>Donald</th>
+                            <td> 5.5 /  8.0 = 0.6875</td>
+                            <td>11.5 / 16.5 = 0.6970</td>
+                            <td>12.5 / 16.0 = 0.7813</td>
+                            <td>2.1657</td>
+                        </tr>
+
+                        <tr align="center">
+                            <th>Gary</th>
+                            <td>0.5 /  8.0 = 0.0625</td>
+                            <td>1.5 / 16.5 = 0.0909</td>
+                            <td>1.5 / 16.0 = 0.0938</td>
+                            <td>0.2472</td>
+                        </tr>
+
+                    </tbody></table>
+                
+                <p>
+                    Donald has the highest contest score and therefore wins.
+                </p>
+
+                <br><h3>Getting Your Questions Answered</h3>
+                <p>
+                    First, check the <a href="http://azspcs.com/Contest/PolygonalAreas#FAQ">FAQ</a> section below.  If you can't 
+                    find the information you need there, send your question to the 
+                    <a href="http://azspcs.com/Contest/PolygonalAreas#DiscussionGroup">discussion group</a>.  
+                    If your question is of a personal nature, and not 
+                    of general interest, send an email directly to 
+                    <a href="javascript:noSpam(&#39;azspcs&#39;,&#39;gmail.com&#39;)">Al Zimmermann</a>.
+                </p>
+
+                <a id="DiscussionGroup"></a>
+                <br><h3>The Discussion Group</h3>
+                <p>
+                    If you think you might enter the contest, you should join the 
+                    contest discussion group.  You can join either by sending a blank email 
+                    <a href="mailto:AlZimmermannsProgrammingContests-subscribe@yahoogroups.com">here</a> 
+                    or by visiting the group on 
+                    <a href="http://groups.yahoo.com/group/AlZimmermannsProgrammingContests/join" target="_blank" title="Yahoo! Groups - opens in new window">Yahoo!</a>. 
+                    The discussion group serves two purposes. First, 
+                    it allows contestants to ask for clarifications to the rules. Be aware that 
+                    sometimes these requests result in changes to the rules, and the first place 
+                    those changes are announced is in the discussion group. Second, the discussion 
+                    group allows contestants to interact with each other regarding programming 
+                    techniques, results and anything else relevant to the contest.  
+                </p>
+                <p>
+                    <span style="font-weight:800">You do not need to have a Yahoo! account to join the group.</span>                
+                </p>
+
+                <br><h3>My Lawyer Would Want Me To Say This</h3>
+                <p>
+                    I reserve the right to discontinue the contest at any time. I reserve the right
+                    to disqualify any entry or entrant for any reason that suits me. I reserve the 
+                    right to interpret the rules as I see fit. I reserve the right to change the 
+                    contest rules in mid-contest. In all matters contest-related, my word is final. 
+                </p>
+
+                <a id="FAQ"></a>
+                <br><h3>Frequently Asked Questions</h3>
+                <ul>
+                    <li>
+                        <h5>
+                            Can teams enter the contest?
+                        </h5>
+                        <p>
+                            Yes.  But a team can only be formed by those who have not
+                            already entered the contest as individuals.  Once you enter
+                            as an individual, team membership is no longer open to you.
+                            Likewise, once you've joined a team you can't break away and
+                            start submitting solutions on your own behalf.  
+                        </p>
+                        <p>
+                            If you would like to form a team, please follow these instructions:
+                        </p>
+                        <ul>
+                            <li>
+                                If they do not already exist, create individual accounts for each team member.
+                                Do not create a second account for any team member who already has one.
+                                <br><br>
+                            </li>
+                            <li>
+                                <a href="javascript:noSpam(&#39;azspcs&#39;,&#39;gmail.com&#39;)">Let me know</a> 
+                                each team member's registered email address.  It is important that 
+                                no team member submit any entries to this contest until I notify you 
+                                that the team has been created and that it is okay to begin submitting.
+                                <br><br>
+                            </li>
+                            <li>
+                                After I've created the team, team members can submit entries to 
+                                the contest from their individual accounts.  The contest engine automatically 
+                                intercepts these entries and diverts them to the team account.  The team is 
+                                listed on the standings page.
+                                <br><br>
+                            </li>
+                            <li>
+                                Note:  Teams are contest-specific.  Joining a team for this 
+                                contest does not affect your participation in other contests.
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <h5>
+                            Can I write a program that submits entries by bypassing my browser? 
+                        </h5>
+
+                        <p>
+                            Yes and no.  If your program keeps track of your submissions
+                            and only submits improved solutions, yes.  Otherwise, no.  For
+                            the <i>Son of Darts</i> contest a few years ago, there was one participant
+                            who wrote a program to exhaustively generate all possible solutions
+                            and submit every one of them.  Within two weeks he'd submitted over
+                            a million entries.  The AZsPCs database had grown to 10 times its
+                            normal size and this individual was single-handedly responsible for 90%
+                            of the entries in the database.  Please compute responsibly.
+                        </p>
+                    </li> 
+                    <li>
+                        <h5>
+                            What topics are appropriate for the discussion group?
+                        </h5>
+
+                        <p>
+                            With only one exception, if it's related to AZsPCs then 
+                            it's fine to talk about it in the discussion group.  The 
+                            exception is spoilers.  Spoilers include:
+                        </p>
+                        <ul>
+                            <li>specific solutions</li>
+                            <li>detailed algorithms</li>
+                        </ul>    
+                        <p>
+                            If you are not sure if something would be considered a spoiler,  
+                            <a href="javascript:noSpam(&#39;azspcs&#39;,&#39;gmail.com&#39;)">ask me</a>.
+                        </p>
+                    </li> 
+                    <li>
+                        <h5>
+                            After I submit a solution, the scorer shows me the 
+                            solution's "canonical representation".  What is that?
+                        </h5>
+
+                        <p>
+                            After the scorer calculates your raw score it may rotate and
+                            reflect your polygon, reverse the order of its points, and/or
+                            choose a different starting point in order to create a standard 
+                            (or "canonical") representation.  Representing solutions 
+                            canonically makes it easier to notice when two seemingly 
+                            different solutions are fundamentally the same.  
+
+<!--                            The scorer disaplys the canonical solution when you submit a 
+                            polygon to make it easier for you to recognize your solution 
+                            at the end of the contest when the best solutions are made public.-->
+                        </p>
+                    </li> 
+                    <li>
+                        <h5>
+                            My cousin, who was 1st runner-up in last year's Miss Parador
+                            contest, would like to know if you are married.  Are you?
+                        </h5>
+                        <p>
+                            Please ask her to email me privately.
+                        </p>
+                    </li> 
+                </ul>
+            </td>
+        </tr>
+    </tbody></table>
+
+
+            </div>
+        </div>
+        <div id="footer">
+            <a href="http://azspcs.com/">Home</a>
+            |
+            <a href="http://azspcs.com/Home/ContactUs">Contact Us</a>
+            | <a href="http://groups.yahoo.com/group/AlZimmermannsProgrammingContests/" target="_blank" title="Yahoo! Groups - opens in new window">Discussion Group</a>
+            |
+            <a href="http://azspcs.com/Gallery">Gallery</a>
+        </div>
+    </div>
+
+</body></html>

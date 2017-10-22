@@ -1,0 +1,159 @@
+﻿/*
+COLOR KEY
+---------
+
+#34346C; /*medium-dark blue (background)
+
+#FDCD02; /*yellow (navigation background)
+
+BLUE - navigation
+#070756; /*dark blue (navigation text)
+#9A9ADF; /*light blue (navigation hover)
+#2626A1; /*medium blue (navigation hover)
+
+*/
+body
+{
+	font-family: Veranda, Sans-serif;
+	background-color: #CCCCCC; /*lightest gray*/
+	font-size: 80%;
+	height: 100%;
+	max-width: 1024px;
+	margin-left: auto;
+	margin-right: auto;
+}
+.page
+{
+    height: 95%;
+    width: 95%;
+    margin-left: auto;
+    margin-right: auto;
+}
+#header
+{
+	background-color: #34346C; /*medium-dark blue*/
+	padding: 0;
+	vertical-align: middle;
+	display: block;
+	color: white;
+	position: relative; /*so welcome and title can be positioned absolutely within*/
+}
+#logo
+{
+	display: inline;
+	margin: 5px;
+}
+#title
+{
+	position: absolute;
+	top: 47px;
+	font-weight: bold;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 200% !important;
+	display: inline-block;
+}
+#welcome
+{
+	position: absolute;
+	top: 5px;
+	right: 10px;
+	text-align: center;
+	font-weight: bold;
+}
+#welcome a, #welcome a:visited
+{
+	color:white;
+	vertical-align:top;
+	text-decoration:none;
+}
+#welcome a:hover
+{
+	color:white;
+	vertical-align:top;
+	text-decoration:underline;
+}
+#main
+{
+	/*background-image: url( "watermark.jpg" );*/
+	background-position: right top;
+	background-repeat: no-repeat;
+ 	background-color: white;
+    position: relative;
+    height: auto;
+	top: 0px;
+	left: 0px;
+}
+#subMenu
+{
+	font-size: 90%;
+	font-weight: bold;
+	padding: 0px;
+	margin: 0px;
+}
+td.notSelected
+{
+	background-color: #FDCD02; /*yellow */
+	color: #070756; /*dark blue*/
+	width: 100px;
+	text-align: center;
+	padding: 3px;
+	margin: 3px;
+	height: auto;
+}
+td.notSelected a, td.notSelected a:visited
+{
+    color:#070756; /*dark blue*/
+    text-decoration: none;
+}
+td.notSelected a:hover
+{
+	color:#2626A1; /*medium blue*/
+	text-decoration: none;
+}
+td.selected
+{
+	background-color:#070756; /*dark blue*/
+    color: white;  /*#9A9ADF;*/ /*light blue*/
+	width: 100px;
+	text-align: center;
+	padding: 3px;
+	margin: 3px;
+	height: auto;
+}
+td.selected a, td.selected a:visited
+{
+    color: white;
+    text-decoration: none;
+}
+td.selected a:hover
+{
+    color: #9A9ADF; /*light blue*/
+    text-decoration: none;
+}
+#contentContainer
+{
+	position: relative;
+	padding: 5px;
+	margin: 0px;
+	height: auto;
+}
+#footer
+{
+	background-color:#34346C; /*medium-dark blue*/
+    color: white;
+    padding: 10px 0;
+    text-align: center;
+    line-height: normal;
+    margin: 0;
+    width: 100%;
+    position: relative;
+    display: block;
+}
+#footer a, #footer a:visited, #footer a:hover
+{
+    color: white;
+}
+#MainContent
+{
+	padding: 10px;
+}
