@@ -42,6 +42,7 @@ object GuiSearch extends JFXApp {
     scene = polygonScene
   }
 
+  //  Future(continueFromBestFoundSoFar())
   Future(startSearch())
 
   def startSearch() = {
@@ -68,25 +69,24 @@ object GuiSearch extends JFXApp {
       else if (Random.nextDouble() < 0.5) pg3(n)
       else pg4(n)
     def polygonGen =
-      if (Random.nextDouble() <= 0.25) PolygonGenerator.generateDoubleWedgePolygon(pointGenerator)
-      else if (Random.nextDouble() <= 0.33) PolygonGenerator.triangleBasedGeneratorSqrPeripheryBased(pointGenerator) // ok-ish
+      if (Random.nextDouble() <= 0.33) PolygonGenerator.triangleBasedGeneratorSqrPeripheryBased(pointGenerator) // ok-ish
       else if (Random.nextDouble() <= 0.5) PolygonGenerator.triangleBasedGeneratorSurfaceBased(pointGenerator)
       else PolygonGenerator.generateReverseStarPolygon(pointGenerator)
     def polygonGeneratorMin = polygonGen
     def polygonGeneratorMax =
       if (Random.nextBoolean()) PolygonGenerator.generateTwoOppositePolygonsInSquare(polygonGeneratorMin)
-      else if (Random.nextBoolean()  ) PolygonGenerator.generatePolygonInSquare(polygonGeneratorMin)
+      else if (Random.nextBoolean()) PolygonGenerator.generatePolygonInSquare(polygonGeneratorMin)
       else PolygonGenerator.generateTwoPolygonsInSquare(polygonGeneratorMin)
     for (i <- 1 to 1000000) {
       val sizes = SolutionManager.opportunities //.filter(_ < 150)
       val n = sizes.head //(Math.min(rollExponential(), sizes.length - 1))
       val optimizer = new Optimizer(
-        maxRoundsWithoutImprovement = 8, //(30 - Math.sqrt(n)).toInt,
+        maxRoundsWithoutImprovement = 3, //(30 - Math.sqrt(n)).toInt,
         familyRevitalizations = 0,
-        familySize = 3,
+        familySize = 1,
         nrOfFamilies = 1,
-        maxOffSpring = 10,
-        generationSteps = 2
+        maxOffSpring = 5,
+        generationSteps = 3
       )
       Try(optimizer.optimizeFromPolygonGenerator(polygonGeneratorMax, n, true)(actionOnFoundMax, actionWithBest(true)))
       Try(optimizer.optimizeFromPolygonGenerator(polygonGeneratorMin, n, false)(actionOnFoundMin, actionWithBest(false)))
@@ -102,11 +102,12 @@ object GuiSearch extends JFXApp {
         refreshPolygons(points, maximize)
       }
       val optimizer = new Optimizer(
-        maxRoundsWithoutImprovement = 10,
+        maxRoundsWithoutImprovement = 5,
         familyRevitalizations = 0,
         familySize = 3,
         nrOfFamilies = 1,
-        maxOffSpring = 25 - Math.sqrt(n).toInt
+        maxOffSpring = 35 - Math.sqrt(n).toInt,
+        generationSteps = 2
       )
       SolutionManager.getMaxSolution(n).foreach { polygon =>
         Try(optimizer.optimiseFromPolygon(Polygon(polygon.toIndexedSeq), true)(actionOnFound, actionWithBest(true)))

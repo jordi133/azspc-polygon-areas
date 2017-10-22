@@ -182,20 +182,6 @@ object PolygonGenerator {
     result
   }
 
-  def generateDoubleWedgePolygon(pointGenerator: Int => Set[Point]): Int => IndexedSeq[Point] = { n =>
-    val points = pointGenerator(n - 2)
-    val start = Point(2, 1)
-    val end = Point(1, 2)
-
-    // take all points below (x+y==n)
-    // for all above, create half star
-    // those below: split over y=x and make wedge
-
-    val polygon: IndexedSeq[Point] = ???
-
-    (start +: polygon) ++ Vector(end)
-  }
-
   def generateStarPolygon(pointGenerator: Int => Set[Point]): Int => IndexedSeq[Point] = { n =>
     val points = pointGenerator(n).toSeq.map(p => Point(2 * p.x, 2 * p.y))
 

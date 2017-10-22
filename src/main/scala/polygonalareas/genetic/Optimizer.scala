@@ -29,6 +29,7 @@ class Optimizer(
 
   def optimizeFromPolygonGenerator(polygonGenerator: (Int) => IndexedSeq[Point], n: Int, maximize: Boolean)
                                   (actionOnFound: IndexedSeq[Point] => Unit, actionWithBest: IndexedSeq[Point] => Unit = _ => ()) = {
+    println(s"${if (maximize) "Maximizing" else "Minimizing"} for n=$n")
     val sortSign = if (maximize) 1 else -1
     var families: Map[Int, Family] = (0 until nrOfFamilies map (i => (i, Family(IndexedSeq(Polygon(polygonGenerator(n))))))).toMap
     var familiesDied = 0
